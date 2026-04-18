@@ -265,36 +265,38 @@ This MUST be removed before the PR is sent upstream. The upstream workflows shou
 
 ## Simulation Batch 3: Boundary Conditions (Issues #9-#14)
 
-**Test Accounts:** `michaeloboyle` (owner), `agentics-committee-alpha` (collaborator), `agentics-committee-beta` (collaborator), `agentics-test-submitter` (outsider)
+**Test Accounts:** `michaeloboyle` (owner), `michael-alpha` (collaborator), `michael-beta` (collaborator), `michael-submitter` (outsider, no repo access)
 
 | # | Scenario | Submitter | Scores | Escalation Vote | Validation Vote | Expected | Actual |
 |---|----------|-----------|--------|-----------------|-----------------|----------|--------|
-| 9 | Split escalation (2-1) | test-submitter | 22/25 | 2 escalate, 1 no-escalate | N/A | ESCALATED | |
-| 10 | Split validation (2-1 approve) | test-submitter | 18/25 | 3 no-escalate | 2 approve, 1 decline | APPROVED | |
-| 11 | Three-way tie (1-1-1) | test-submitter | 15/25 | 3 no-escalate | 1 approve, 1 decline, 1 defer | DEFERRED | |
-| 12 | Vote change (last wins) | test-submitter | 17/25 | 3 no-escalate | Alpha: approve then decline; Beta+Michael: approve | APPROVED (2-1) | |
-| 13 | Quorum not met | test-submitter | 16/25 | Only 2 of 3 vote | N/A | WAITING | |
-| 14 | Approve with conditions | test-submitter | 16/25 | 3 no-escalate | 3 approve-with-conditions | APPROVED_WITH_CONDITIONS | |
+| 9 | Split escalation (2-1) | michael-submitter | 22/25 | 2 escalate, 1 no-escalate | N/A | ESCALATED | **ESCALATED** |
+| 10 | Split validation (2-1 approve) | michael-submitter | 18/25 | 3 no-escalate | 2 approve, 1 decline | APPROVED | **APPROVED** |
+| 11 | Three-way tie (1-1-1) | michael-submitter | 15/25 | 3 no-escalate | 1 approve, 1 decline, 1 defer | DEFERRED | **DEFERRED** |
+| 12 | Vote change (last wins) | michael-submitter | 17/25 | 3 no-escalate | Alpha: approve then decline; Beta+Michael: approve | APPROVED (2-1) | **APPROVED (2-1)** |
+| 13 | Quorum not met | michael-submitter | 16/25 | Only 2 of 3 vote | N/A | WAITING | **WAITING (2/3)** |
+| 15 | Approve with conditions | michael-submitter | 16/25 | 3 no-escalate | 3 approve-with-conditions | APPROVED_WITH_CONDITIONS | **APPROVED_WITH_CONDITIONS** |
+
+**Note:** Issue #14 was consumed by the merge PR. Scenario 14 (approve-with-conditions) ran as issue #15.
 
 ---
 
 ## Simulation Batch 4: Governance Edge Cases (Issues #15-#18)
 
-| # | Scenario | Submitter | Setup | Expected | Actual |
-|---|----------|-----------|-------|----------|--------|
-| 15 | Quorum collapse via recusal | test-submitter | Score normally. Alpha recuses via `/coi`. Only 2 eligible voters remain < quorum. | WAITING (2/3 quorum not reached) | |
-| 16 | SEC-012 enforcement | michaeloboyle | Michael creates issue AND tries to score/vote. Other 2 members score/vote. | Michael's votes excluded, 2/3 quorum not met | |
-| 17 | Retraction (successful) | test-submitter | Approve first (3x approve). Alpha posts `/retract`. All 3 vote `/vote retract`. | RETRACTED | |
-| 18 | Retraction failure | test-submitter | Approve first. Alpha posts `/retract`. 1 retract, 2 no-retract. | RETAINED | |
+| Issue | Scenario | Submitter | Setup | Expected | Actual |
+|-------|----------|-----------|-------|----------|--------|
+| #16 | Quorum collapse via recusal | michael-submitter | Scored 19/25. Alpha recused via `/coi`. Beta+Michael voted escalate. | WAITING (2/3 quorum not reached) | **WAITING (2/3)** |
+| #17 | SEC-012 enforcement | michaeloboyle | Michael created issue, tried to score+vote. Alpha+Beta scored+voted. | Michael's votes excluded, 2/3 quorum not met | **WAITING (2/3), Michael excluded** |
+| #18 | Retraction (successful) | michael-submitter | Approved (3x approve). Alpha proposed `/retract`. All 3 voted retract. | RETRACTED | **RETRACTED**, issue closed |
+| #19 | Retraction failure | michael-submitter | Approved (3x approve). Alpha proposed `/retract`. 1 retract, 2 no-retract. | RETAINED | **RETAINED**, still approved |
 
 ---
 
 ## Simulation Batch 5: Intelligence Layer (Issues #19-#20)
 
-| # | Scenario | Purpose | Expected | Actual |
-|---|----------|---------|----------|--------|
-| 19 | Enriched score prediction | 16 synthetic submissions added to embeddings.json. Issue in "donation" category. | Case brief shows predicted score range with actual numbers | |
-| 20 | CoI detection with real graph match | `agentics-committee-alpha` as submitter. Graph has planted CoI path via acme-ai-labs. | Case brief includes CoI warning with path | |
+| Issue | Scenario | Purpose | Expected | Actual |
+|-------|----------|---------|----------|--------|
+| #21 | Enriched score prediction | 16 synthetic submissions in embeddings.json. Issue in "donation" category. | Case brief shows predicted score range with actual numbers | **PASS**: "Based on 4 prior donation submissions: range 15 to 23/25, average 19/25" |
+| #22 | CoI detection with real graph match | `michael-alpha` as submitter. Graph has CoI edge via acme-ai-labs. | Case brief includes CoI warning with path | **PASS**: 6 CoI paths flagged via agentics-foundation membership |
 
 ---
 
@@ -302,17 +304,17 @@ This MUST be removed before the PR is sent upstream. The upstream workflows shou
 
 | Panel Criticism | Addressed By | Status |
 |----------------|-------------|--------|
-| All votes were unanimous 3-0 | Scenarios 9, 10, 11, 12 (split votes, ties, vote changes) | PENDING |
-| GOVERNANCE_TEST_MODE is a backdoor | Fix 2 removes it; real accounts replace it | DONE |
-| Retraction lifecycle untested | Scenarios 17, 18 | PENDING |
-| Approve-with-conditions untested | Fix 1 + Scenario 14 | PENDING |
-| Quorum collapse from recusals untested | Scenario 15 | PENDING |
-| SEC-012 not tested with real multi-user | Scenario 16 | PENDING |
-| Intelligence layer undemonstrated | Scenario 19 (enriched predictions) | PENDING |
-| Agent influence unmeasured | Scenario 20 (CoI detection on real submission) | PENDING |
-| Vote deduplication (last wins) untested | Scenario 12 | PENDING |
-| Quorum enforcement untested | Scenario 13 | PENDING |
-| Unsigned attestations imply false security | Fix 3 removes the field | DONE |
+| All votes were unanimous 3-0 | Scenarios 9, 10, 11, 12 (split votes, ties, vote changes) | **PASS** |
+| GOVERNANCE_TEST_MODE is a backdoor | Fix 2 removes it; real accounts replace it | **DONE** |
+| Retraction lifecycle untested | Scenarios 17 (#18), 18 (#19) | **PASS** |
+| Approve-with-conditions untested | Fix 1 + Scenario 14 (#15) | **PASS** |
+| Quorum collapse from recusals untested | Scenario 15 (#16) | **PASS** |
+| SEC-012 not tested with real multi-user | Scenario 16 (#17) | **PASS** |
+| Intelligence layer undemonstrated | Scenario 19 (#21, enriched predictions) | **PASS** |
+| Agent influence unmeasured | Scenario 20 (#22, CoI detection on real submission) | **PASS** |
+| Vote deduplication (last wins) untested | Scenario 12 | **PASS** |
+| Quorum enforcement untested | Scenario 13 | **PASS** |
+| Unsigned attestations imply false security | Fix 3 removes the field | **DONE** |
 
 ---
 
