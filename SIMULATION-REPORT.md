@@ -253,13 +253,70 @@ This MUST be removed before the PR is sent upstream. The upstream workflows shou
 | Workflow structural validation | Yes | Yes | PASS (49/49) |
 | Unit tests | Yes | Yes | PASS (82/82) |
 
-## What Still Needs Testing (Requires Multiple Collaborators)
+## Pre-Requisite Code Fixes (Applied Before Batch 3)
 
-- [ ] SEC-012 enforcement with real multi-user voting (not test mode)
-- [ ] Quorum enforcement: verify the system waits when quorum is not met
-- [ ] Tie-breaking: verify ties default to DEFERRED in production
-- [ ] Retraction lifecycle: approve a project, then propose and vote on retraction
-- [ ] Concurrent voting from multiple real users arriving within seconds
-- [ ] approve-with-conditions outcome (requires mixed validation votes)
+| Fix | Description | Files Changed |
+|-----|-------------|---------------|
+| Fix 1 | Added `/vote approve-with-conditions` parsing, counter, and `APPROVED_WITH_CONDITIONS` outcome | `validation-vote.yml` |
+| Fix 2 | Removed `GOVERNANCE_TEST_MODE` bypass from all workflows. Real accounts replace simulation. | `escalation-vote.yml`, `validation-vote.yml`, `governance-agent.yml` |
+| Fix 3 | Removed empty `signature` field from attestation schema (v1.0.0 to v1.1.0) and all `appendAttestation` calls | `governance-agent.yml`, `attestation.jsonl` |
+
+---
+
+## Simulation Batch 3: Boundary Conditions (Issues #9-#14)
+
+**Test Accounts:** `michaeloboyle` (owner), `agentics-committee-alpha` (collaborator), `agentics-committee-beta` (collaborator), `agentics-test-submitter` (outsider)
+
+| # | Scenario | Submitter | Scores | Escalation Vote | Validation Vote | Expected | Actual |
+|---|----------|-----------|--------|-----------------|-----------------|----------|--------|
+| 9 | Split escalation (2-1) | test-submitter | 22/25 | 2 escalate, 1 no-escalate | N/A | ESCALATED | |
+| 10 | Split validation (2-1 approve) | test-submitter | 18/25 | 3 no-escalate | 2 approve, 1 decline | APPROVED | |
+| 11 | Three-way tie (1-1-1) | test-submitter | 15/25 | 3 no-escalate | 1 approve, 1 decline, 1 defer | DEFERRED | |
+| 12 | Vote change (last wins) | test-submitter | 17/25 | 3 no-escalate | Alpha: approve then decline; Beta+Michael: approve | APPROVED (2-1) | |
+| 13 | Quorum not met | test-submitter | 16/25 | Only 2 of 3 vote | N/A | WAITING | |
+| 14 | Approve with conditions | test-submitter | 16/25 | 3 no-escalate | 3 approve-with-conditions | APPROVED_WITH_CONDITIONS | |
+
+---
+
+## Simulation Batch 4: Governance Edge Cases (Issues #15-#18)
+
+| # | Scenario | Submitter | Setup | Expected | Actual |
+|---|----------|-----------|-------|----------|--------|
+| 15 | Quorum collapse via recusal | test-submitter | Score normally. Alpha recuses via `/coi`. Only 2 eligible voters remain < quorum. | WAITING (2/3 quorum not reached) | |
+| 16 | SEC-012 enforcement | michaeloboyle | Michael creates issue AND tries to score/vote. Other 2 members score/vote. | Michael's votes excluded, 2/3 quorum not met | |
+| 17 | Retraction (successful) | test-submitter | Approve first (3x approve). Alpha posts `/retract`. All 3 vote `/vote retract`. | RETRACTED | |
+| 18 | Retraction failure | test-submitter | Approve first. Alpha posts `/retract`. 1 retract, 2 no-retract. | RETAINED | |
+
+---
+
+## Simulation Batch 5: Intelligence Layer (Issues #19-#20)
+
+| # | Scenario | Purpose | Expected | Actual |
+|---|----------|---------|----------|--------|
+| 19 | Enriched score prediction | 16 synthetic submissions added to embeddings.json. Issue in "donation" category. | Case brief shows predicted score range with actual numbers | |
+| 20 | CoI detection with real graph match | `agentics-committee-alpha` as submitter. Graph has planted CoI path via acme-ai-labs. | Case brief includes CoI warning with path | |
+
+---
+
+## Panel Criticism Resolution
+
+| Panel Criticism | Addressed By | Status |
+|----------------|-------------|--------|
+| All votes were unanimous 3-0 | Scenarios 9, 10, 11, 12 (split votes, ties, vote changes) | PENDING |
+| GOVERNANCE_TEST_MODE is a backdoor | Fix 2 removes it; real accounts replace it | DONE |
+| Retraction lifecycle untested | Scenarios 17, 18 | PENDING |
+| Approve-with-conditions untested | Fix 1 + Scenario 14 | PENDING |
+| Quorum collapse from recusals untested | Scenario 15 | PENDING |
+| SEC-012 not tested with real multi-user | Scenario 16 | PENDING |
+| Intelligence layer undemonstrated | Scenario 19 (enriched predictions) | PENDING |
+| Agent influence unmeasured | Scenario 20 (CoI detection on real submission) | PENDING |
+| Vote deduplication (last wins) untested | Scenario 12 | PENDING |
+| Quorum enforcement untested | Scenario 13 | PENDING |
+| Unsigned attestations imply false security | Fix 3 removes the field | DONE |
+
+---
+
+## What Still Needs Testing (Deferred)
+
 - [ ] GDoc drift detection (monthly scheduled workflow)
 - [ ] Weekly monitoring of approved projects

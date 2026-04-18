@@ -360,7 +360,6 @@ jobs:
               actor: 'agent',
               timestamp: new Date().toISOString(),
               gdoc_revision: '',
-              signature: '',
               payload: {
                 coi_flags: coiPaths.length + orgCoiPaths.length,
                 similar_count: topSimilar.length,
@@ -551,7 +550,6 @@ jobs:
                 actor: actor,
                 timestamp: new Date().toISOString(),
                 gdoc_revision: '',
-                signature: '',
                 payload: { action: 'coi_recusal', reason: reason }
               });
 
@@ -623,7 +621,6 @@ jobs:
                 actor: actor,
                 timestamp: new Date().toISOString(),
                 gdoc_revision: '',
-                signature: '',
                 payload: {
                   action: 'manual_override',
                   rationale: rationale
@@ -780,9 +777,7 @@ jobs:
               commandWord === '/retract'
             ) {
               // SEC-012: Submitter cannot score/vote on own submission
-              // GOVERNANCE_TEST_MODE: bypass for fork testing
-              const testMode = '${{ vars.GOVERNANCE_TEST_MODE }}' === 'true';
-              if (!testMode && actor === submitter && commandWord !== '/retract') {
+              if (actor === submitter && commandWord !== '/retract') {
                 // The mechanical workflows already enforce this, but we
                 // log the attempt for audit
                 appendAttestation({
@@ -793,7 +788,6 @@ jobs:
                   actor: actor,
                   timestamp: new Date().toISOString(),
                   gdoc_revision: '',
-                  signature: '',
                   payload: {
                     action: 'self_vote_blocked',
                     command: comment
@@ -812,7 +806,6 @@ jobs:
                 actor: actor,
                 timestamp: new Date().toISOString(),
                 gdoc_revision: '',
-                signature: '',
                 payload: {
                   command: commandWord,
                   raw: sanitize(comment, 500)
