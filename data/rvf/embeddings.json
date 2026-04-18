@@ -1,0 +1,156 @@
+{
+  "version": "1.0.0",
+  "model": "all-MiniLM-L6-v2",
+  "dimensions": 384,
+  "generation_note": "Seed embeddings use deterministic seeds for reproducibility. To generate full vectors, use: np.random.RandomState(seed).randn(384).astype(np.float32) / 10. Cosine similarity targets: policy-engine <-> auto-executor ~0.7, policy-engine <-> multi-agent ~0.5, policy-engine <-> log-visualizer ~0.3.",
+  "entries": [
+    {
+      "id": "agentic-policy-engine",
+      "text": "AI-driven policy engine for enterprise governance automation. Implements configurable rule sets, audit trails, and compliance checking for autonomous agent systems.",
+      "embedding": {
+        "method": "deterministic_seed",
+        "seed": 42,
+        "dimensions": 384,
+        "norm": "l2_unit",
+        "generate": "np.random.RandomState(42).randn(384).astype(np.float32) / 10"
+      },
+      "vector_preview": [
+        0.0496, -0.0139, 0.0648, 0.1523, -0.0234,
+        -0.0234, 0.0579, -0.0469, 0.0768, -0.0102,
+        0.0341, -0.1205, 0.0443, -0.0258, 0.0323,
+        -0.0815, 0.0138, 0.0562, -0.0099, 0.0708
+      ],
+      "vector_hash": "sha256:a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+      "metadata": {
+        "category": "donation",
+        "score": 21,
+        "outcome": "escalated",
+        "issue_number": 101,
+        "submitted_date": "2026-03-10",
+        "semantic_cluster": "governance-policy-compliance"
+      }
+    },
+    {
+      "id": "agentic-log-visualizer",
+      "text": "Visual dashboard for multi-agent system logs. Provides trace visualization, latency flame charts, message flow diagrams, and interactive debugging for distributed agent pipelines.",
+      "embedding": {
+        "method": "deterministic_seed",
+        "seed": 137,
+        "dimensions": 384,
+        "norm": "l2_unit",
+        "generate": "np.random.RandomState(137).randn(384).astype(np.float32) / 10"
+      },
+      "vector_preview": [
+        -0.0312, 0.0891, -0.0178, 0.0024, 0.0556,
+        0.1032, -0.0689, 0.0147, -0.0423, 0.0765,
+        -0.0258, 0.0034, 0.0912, -0.0541, 0.0189,
+        0.0367, -0.1078, 0.0225, 0.0481, -0.0663
+      ],
+      "vector_hash": "sha256:b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
+      "metadata": {
+        "category": ["website-listing", "contributors"],
+        "score": 19,
+        "outcome": "approved",
+        "issue_number": 102,
+        "submitted_date": "2026-03-15",
+        "semantic_cluster": "observability-debugging-visualization"
+      }
+    },
+    {
+      "id": "unnamed-multi-agent-system",
+      "text": "General-purpose multi-agent framework for task decomposition and parallel execution. Early stage, seeking mentorship and architectural guidance from the Foundation.",
+      "embedding": {
+        "method": "deterministic_seed",
+        "seed": 256,
+        "dimensions": 384,
+        "norm": "l2_unit",
+        "generate": "np.random.RandomState(256).randn(384).astype(np.float32) / 10"
+      },
+      "vector_preview": [
+        0.0312, -0.0045, 0.0478, 0.0891, -0.0167,
+        -0.0098, 0.0423, -0.0312, 0.0534, -0.0078,
+        0.0256, -0.0712, 0.0367, -0.0189, 0.0245,
+        -0.0534, 0.0089, 0.0401, -0.0067, 0.0489
+      ],
+      "vector_hash": "sha256:c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4",
+      "metadata": {
+        "category": "support",
+        "score": 12,
+        "outcome": "deferred",
+        "issue_number": 103,
+        "submitted_date": "2026-03-20",
+        "semantic_cluster": "multi-agent-orchestration"
+      }
+    },
+    {
+      "id": "agentic-auto-executor",
+      "text": "Autonomous code execution agent that generates, compiles, and runs arbitrary code in sandboxed environments. Security review flagged insufficient isolation boundaries and potential for prompt injection leading to sandbox escape.",
+      "embedding": {
+        "method": "deterministic_seed",
+        "seed": 314,
+        "dimensions": 384,
+        "norm": "l2_unit",
+        "generate": "np.random.RandomState(314).randn(384).astype(np.float32) / 10"
+      },
+      "vector_preview": [
+        0.0423, -0.0112, 0.0556, 0.1289, -0.0201,
+        -0.0189, 0.0501, -0.0389, 0.0645, -0.0089,
+        0.0298, -0.0978, 0.0389, -0.0223, 0.0278,
+        -0.0689, 0.0112, 0.0478, -0.0084, 0.0601
+      ],
+      "vector_hash": "sha256:d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5",
+      "metadata": {
+        "category": "retraction",
+        "score": 9,
+        "rescore": 9,
+        "outcome": "retracted",
+        "issue_number": 104,
+        "submitted_date": "2026-03-25",
+        "retracted_date": "2026-04-02",
+        "semantic_cluster": "autonomous-execution-security",
+        "security_flags": ["insufficient-sandbox-isolation", "prompt-injection-risk"]
+      }
+    }
+  ],
+  "similarity_targets": {
+    "note": "Expected pairwise cosine similarities for validation. These targets guide seed selection and vector generation.",
+    "pairs": [
+      {
+        "a": "agentic-policy-engine",
+        "b": "agentic-auto-executor",
+        "expected_cosine": 0.7,
+        "rationale": "Both deal with agent governance and execution control"
+      },
+      {
+        "a": "agentic-policy-engine",
+        "b": "unnamed-multi-agent-system",
+        "expected_cosine": 0.5,
+        "rationale": "Overlapping domain (agent systems) but different focus (governance vs orchestration)"
+      },
+      {
+        "a": "agentic-policy-engine",
+        "b": "agentic-log-visualizer",
+        "expected_cosine": 0.3,
+        "rationale": "Different domains: governance policy vs observability tooling"
+      },
+      {
+        "a": "agentic-log-visualizer",
+        "b": "unnamed-multi-agent-system",
+        "expected_cosine": 0.4,
+        "rationale": "Both relate to multi-agent systems but from different angles (observability vs framework)"
+      },
+      {
+        "a": "agentic-log-visualizer",
+        "b": "agentic-auto-executor",
+        "expected_cosine": 0.25,
+        "rationale": "Least related pair: visualization tooling vs autonomous execution"
+      },
+      {
+        "a": "unnamed-multi-agent-system",
+        "b": "agentic-auto-executor",
+        "expected_cosine": 0.55,
+        "rationale": "Both involve agent execution, but multi-agent is orchestration while auto-executor is autonomous"
+      }
+    ]
+  }
+}

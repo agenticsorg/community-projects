@@ -1,0 +1,1464 @@
+name: Governance Agent (RVF Intelligence Layer)
+
+on:
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+  schedule:
+    - cron: '0 9 * * 1'   # Weekly Monday 9am UTC -- project health monitoring
+    - cron: '0 0 1 * *'   # Monthly 1st midnight UTC -- GDoc drift detection
+
+permissions:
+  contents: write
+  issues: write
+
+env:
+  QUORUM: '3'
+  COI_GRAPH_PATH: data/rvf/graph.json
+  EMBEDDINGS_PATH: data/rvf/embeddings.json
+  ATTESTATION_PATH: data/rvf/attestation.jsonl
+  APPROVED_PROJECTS_PATH: data/approved-projects.json
+  STALE_THRESHOLD_DAYS: '90'
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1: Case Brief
+  # Triggered when a new submission issue is opened with status:pending-review.
+  # Generates an intelligence-enriched case brief for the committee by querying
+  # the RVF graph for CoI paths and the embedding store for similar prior
+  # submissions.
+  # ---------------------------------------------------------------------------
+  case-brief:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'issues' &&
+      github.event.action == 'opened' &&
+      contains(github.event.issue.labels.*.name, 'status:pending-review')
+    concurrency:
+      group: case-brief-${{ github.event.issue.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+
+      - name: Generate case brief
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
+        env:
+          EMBEDDING_API_KEY: ${{ secrets.EMBEDDING_API_KEY }}
+        with:
+          script: |
+            const fs = require('fs');
+
+            // SEC-007: Sanitize user input before embedding in comments
+            function sanitize(input, maxLen = 200) {
+              return input
+                .replace(/[[\](){}|`*_~#>!\\]/g, '')
+                .substring(0, maxLen)
+                .trim();
+            }
+
+            // ---------------------------------------------------------------
+            // 1. Parse submission from issue body
+            // ---------------------------------------------------------------
+            const body = context.payload.issue.body || '';
+            const submitter = context.payload.issue.user.login;
+
+            function extract(label) {
+              const re = new RegExp(`### ${label}\\s*\\n\\s*(.+)`, 'i');
+              const m = body.match(re);
+              return m ? m[1].trim() : '';
+            }
+
+            const fullName = sanitize(extract('Full Name'));
+            const repoUrl = sanitize(extract('Repository URL'), 500);
+            const orgName = sanitize(extract('Organization'));
+
+            // Extract category
+            const categoryMap = {
+              'Project Donation': 'donation',
+              'Website Listing': 'website-listing',
+              'Co-Founder Search': 'cofounder',
+              'Problem Support': 'support',
+              'Contributor Engagement': 'contributors'
+            };
+            let category = 'unknown';
+            for (const [text, slug] of Object.entries(categoryMap)) {
+              if (body.includes(text)) { category = slug; break; }
+            }
+
+            // Extract description
+            const descMatch = body.match(
+              /### Project Description & Request\s*\n\s*([\s\S]*?)(?=\n###|\n---|\Z)/i
+            );
+            const description = descMatch
+              ? sanitize(descMatch[1].trim().split('\n').slice(0, 3).join(' '), 500)
+              : 'No description provided.';
+
+            // ---------------------------------------------------------------
+            // 2. Query RVF graph for conflict-of-interest paths
+            // ---------------------------------------------------------------
+            let graph;
+            try {
+              graph = JSON.parse(
+                fs.readFileSync(process.env.COI_GRAPH_PATH, 'utf8')
+              );
+            } catch (e) {
+              graph = { nodes: [], edges: [] };
+            }
+
+            // Build adjacency list (undirected for BFS)
+            const adj = {};
+            for (const edge of graph.edges) {
+              if (!adj[edge.source]) adj[edge.source] = [];
+              if (!adj[edge.target]) adj[edge.target] = [];
+              adj[edge.source].push({
+                node: edge.target,
+                rel: edge.relationship
+              });
+              adj[edge.target].push({
+                node: edge.source,
+                rel: edge.relationship
+              });
+            }
+
+            // Find committee member nodes
+            const committeeMembers = graph.nodes
+              .filter(n =>
+                n.type === 'person' &&
+                n.properties &&
+                n.properties.role === 'committee_member'
+              )
+              .map(n => n.id);
+
+            // Find submitter node by github_username
+            const submitterNode = graph.nodes.find(
+              n =>
+                n.type === 'person' &&
+                n.properties &&
+                n.properties.github_username === submitter
+            );
+
+            // BFS from submitter to each committee member (max depth 4)
+            const coiPaths = [];
+            if (submitterNode) {
+              const maxDepth = 4;
+              for (const cmId of committeeMembers) {
+                // BFS
+                const queue = [[submitterNode.id, [submitterNode.id]]];
+                const visited = new Set([submitterNode.id]);
+
+                while (queue.length > 0) {
+                  const [current, path] = queue.shift();
+                  if (path.length > maxDepth + 1) break;
+
+                  if (current === cmId && path.length > 1) {
+                    coiPaths.push({
+                      committee_member: cmId,
+                      path: path,
+                      hops: path.length - 1
+                    });
+                    break;
+                  }
+
+                  for (const neighbor of (adj[current] || [])) {
+                    if (!visited.has(neighbor.node)) {
+                      visited.add(neighbor.node);
+                      queue.push([neighbor.node, [...path, neighbor.node]]);
+                    }
+                  }
+                }
+              }
+            }
+
+            // Also check by organization name if submitter not in graph
+            const orgCoiPaths = [];
+            if (orgName && !submitterNode) {
+              // Find org nodes matching the submitted org name
+              const orgNode = graph.nodes.find(
+                n =>
+                  n.type === 'organization' &&
+                  n.properties &&
+                  (n.properties.display_name || '').toLowerCase() ===
+                    orgName.toLowerCase()
+              );
+              if (orgNode) {
+                // Find committee members affiliated with this org
+                for (const edge of graph.edges) {
+                  if (
+                    edge.target === orgNode.id &&
+                    edge.relationship === 'affiliated_with' &&
+                    committeeMembers.includes(edge.source)
+                  ) {
+                    orgCoiPaths.push({
+                      committee_member: edge.source,
+                      shared_org: orgNode.id,
+                      relationship: edge.properties?.role || 'affiliated'
+                    });
+                  }
+                }
+              }
+            }
+
+            // ---------------------------------------------------------------
+            // 3. Query embeddings for similar prior submissions
+            // ---------------------------------------------------------------
+            let embeddings;
+            try {
+              embeddings = JSON.parse(
+                fs.readFileSync(process.env.EMBEDDINGS_PATH, 'utf8')
+              );
+            } catch (e) {
+              embeddings = { entries: [] };
+            }
+
+            // Without a live embedding API, report prior submissions with
+            // metadata-based similarity (category match, score proximity).
+            // When EMBEDDING_API_KEY is set, this section would call the
+            // embedding API and compute real cosine similarities.
+            const priorSubmissions = embeddings.entries.map(entry => {
+              const catMatch =
+                Array.isArray(entry.metadata.category)
+                  ? entry.metadata.category.includes(category)
+                  : entry.metadata.category === category;
+
+              return {
+                id: entry.id,
+                text: entry.text,
+                category_match: catMatch,
+                outcome: entry.metadata.outcome,
+                score: entry.metadata.score,
+                cluster: entry.metadata.semantic_cluster || 'unknown'
+              };
+            });
+
+            // Sort: category matches first, then by score descending
+            priorSubmissions.sort((a, b) => {
+              if (a.category_match !== b.category_match) {
+                return a.category_match ? -1 : 1;
+              }
+              return (b.score || 0) - (a.score || 0);
+            });
+
+            const topSimilar = priorSubmissions.slice(0, 3);
+
+            // ---------------------------------------------------------------
+            // 4. Predict score range from prior data
+            // ---------------------------------------------------------------
+            const categoryScores = embeddings.entries
+              .filter(e => {
+                const eCat = e.metadata.category;
+                return Array.isArray(eCat)
+                  ? eCat.includes(category)
+                  : eCat === category;
+              })
+              .map(e => e.metadata.score)
+              .filter(s => typeof s === 'number');
+
+            let scorePrediction = 'Insufficient prior data for prediction.';
+            if (categoryScores.length >= 2) {
+              const min = Math.min(...categoryScores);
+              const max = Math.max(...categoryScores);
+              const avg = Math.round(
+                categoryScores.reduce((a, b) => a + b, 0) /
+                  categoryScores.length
+              );
+              scorePrediction =
+                `Based on ${categoryScores.length} prior ${category} submissions: ` +
+                `range ${min} to ${max}/25, average ${avg}/25.`;
+            }
+
+            // ---------------------------------------------------------------
+            // 5. Compose and post the case brief
+            // ---------------------------------------------------------------
+            const coiSection = [];
+            if (coiPaths.length > 0 || orgCoiPaths.length > 0) {
+              coiSection.push(
+                '> **Conflict of Interest flags detected.** ' +
+                'Flagged members should consider recusal via `/coi`.'
+              );
+              coiSection.push('');
+              for (const p of coiPaths) {
+                coiSection.push(
+                  `- **${p.committee_member}**: ` +
+                  `${p.hops}-hop path via \`${p.path.join(' -> ')}\``
+                );
+              }
+              for (const p of orgCoiPaths) {
+                coiSection.push(
+                  `- **${p.committee_member}**: ` +
+                  `affiliated with shared org \`${p.shared_org}\` ` +
+                  `(role: ${p.relationship})`
+                );
+              }
+            } else {
+              coiSection.push('No conflict-of-interest paths detected.');
+            }
+
+            const similarSection = topSimilar.length > 0
+              ? topSimilar.map(s =>
+                  `| ${s.id} | ${s.category_match ? 'Yes' : 'No'} | ` +
+                  `${s.score || 'N/A'}/25 | ${s.outcome} | ${s.cluster} |`
+                )
+              : ['| (no prior submissions found) | | | | |'];
+
+            const brief = [
+              '### Case Brief (Governance Agent)',
+              '',
+              '#### Submission Summary',
+              '',
+              `| Field | Value |`,
+              `|-------|-------|`,
+              `| Submitter | @${submitter}${fullName ? ` (${fullName})` : ''} |`,
+              `| Category | ${category} |`,
+              `| Organization | ${orgName || 'Not specified'} |`,
+              `| Repository | ${repoUrl || 'Not provided'} |`,
+              '',
+              `**Description:** ${description}`,
+              '',
+              '#### Conflict of Interest Analysis',
+              '',
+              ...coiSection,
+              '',
+              '#### Similar Prior Submissions',
+              '',
+              '| Submission | Category Match | Score | Outcome | Cluster |',
+              '|------------|---------------|-------|---------|---------|',
+              ...similarSection,
+              '',
+              '#### Predicted Score Range',
+              '',
+              scorePrediction,
+              '',
+              '#### Next Steps',
+              '',
+              'Committee members: please score this submission using:',
+              '```',
+              '/score mission:N quality:N clarity:N impact:N risk:N',
+              '```',
+              'Each criterion is 0 to 5. If a CoI flag applies to you, please recuse with `/coi`.',
+              '',
+              '---',
+              '*Generated by the Governance Agent (RVF intelligence layer). This complements, but does not replace, human review.*'
+            ];
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: brief.join('\n')
+            });
+
+            // ---------------------------------------------------------------
+            // 6. Append attestation entry
+            // ---------------------------------------------------------------
+            const attestation = JSON.stringify({
+              type: 'transition',
+              submission_id: `issue-${context.issue.number}`,
+              from_state: 'new',
+              to_state: 'case-brief-generated',
+              actor: 'agent',
+              timestamp: new Date().toISOString(),
+              gdoc_revision: '',
+              signature: '',
+              payload: {
+                coi_flags: coiPaths.length + orgCoiPaths.length,
+                similar_count: topSimilar.length,
+                category: category
+              }
+            });
+
+            fs.appendFileSync(
+              process.env.ATTESTATION_PATH,
+              '\n' + attestation
+            );
+
+      - name: Commit attestation update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/rvf/attestation.jsonl
+          git diff --cached --quiet && exit 0
+          git commit -m "Attestation: case brief for issue #${{ github.event.issue.number }}"
+          git pull --rebase origin main
+          git push
+
+  # ---------------------------------------------------------------------------
+  # Job 2: Process Command
+  # Handles slash commands in issue comments: /score, /vote, /coi, /retract,
+  # /override, /status. Routes to the appropriate handler and checks state
+  # machine guards before advancing.
+  # ---------------------------------------------------------------------------
+  process-command:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.action == 'created' &&
+      startsWith(github.event.comment.body, '/')
+    concurrency:
+      group: command-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+
+      - name: Route and process command
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
+        with:
+          script: |
+            const fs = require('fs');
+            const comment = context.payload.comment.body.trim();
+            const actor = context.payload.comment.user.login;
+            const issueNumber = context.issue.number;
+
+            // SEC-007: Sanitize helper
+            function sanitize(input, maxLen = 200) {
+              return input
+                .replace(/[[\](){}|`*_~#>!\\]/g, '')
+                .substring(0, maxLen)
+                .trim();
+            }
+
+            // SEC-003: Verify commenter is an org member/collaborator
+            const validAssociations = ['MEMBER', 'OWNER', 'COLLABORATOR'];
+            const association = context.payload.comment.author_association;
+
+            // Commands that require committee membership
+            const privilegedCommands = [
+              '/score', '/vote', '/coi', '/retract', '/override'
+            ];
+
+            const commandWord = comment.split(/\s/)[0].toLowerCase();
+
+            // Allow /status for anyone, restrict others
+            if (
+              privilegedCommands.includes(commandWord) &&
+              !validAssociations.includes(association)
+            ) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body:
+                  `@${actor} Only organization members, owners, ` +
+                  `or collaborators can use \`${commandWord}\`.`
+              });
+              return;
+            }
+
+            // SEC-012: Get issue author (submitter cannot vote/score own issue)
+            const issue = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            });
+            const submitter = issue.data.user.login;
+
+            // SEC-008: Rate limit -- check for recent bot comments
+            const allComments = await github.paginate(
+              github.rest.issues.listComments,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber
+              }
+            );
+            const recentBotComment = allComments.find(
+              c =>
+                c.user.login === 'github-actions[bot]' &&
+                Date.now() - new Date(c.created_at).getTime() < 60000
+            );
+
+            // Get current labels for state machine checks
+            const labels = (
+              await github.rest.issues.listLabelsOnIssue({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber
+              })
+            ).data.map(l => l.name);
+
+            // Load attestation log for recording
+            const attestationPath = process.env.ATTESTATION_PATH ||
+              'data/rvf/attestation.jsonl';
+
+            function appendAttestation(entry) {
+              fs.appendFileSync(
+                attestationPath,
+                '\n' + JSON.stringify(entry)
+              );
+            }
+
+            // ---------------------------------------------------------------
+            // /coi -- Record conflict-of-interest recusal
+            // ---------------------------------------------------------------
+            if (commandWord === '/coi') {
+              const reason = sanitize(
+                comment.replace(/^\/coi\s*/i, ''),
+                500
+              ) || 'No reason provided.';
+
+              // Record in graph
+              let graph;
+              try {
+                graph = JSON.parse(
+                  fs.readFileSync(
+                    process.env.COI_GRAPH_PATH || 'data/rvf/graph.json',
+                    'utf8'
+                  )
+                );
+              } catch (e) {
+                graph = { version: '1.0.0', nodes: [], edges: [] };
+              }
+
+              // Add recusal edge
+              graph.edges.push({
+                source: actor,
+                target: `issue-${issueNumber}`,
+                relationship: 'recused_from',
+                properties: {
+                  date: new Date().toISOString().split('T')[0],
+                  reason: reason
+                }
+              });
+
+              fs.writeFileSync(
+                process.env.COI_GRAPH_PATH || 'data/rvf/graph.json',
+                JSON.stringify(graph, null, 2) + '\n'
+              );
+
+              appendAttestation({
+                type: 'decision',
+                submission_id: `issue-${issueNumber}`,
+                from_state: 'active',
+                to_state: 'coi-recusal',
+                actor: actor,
+                timestamp: new Date().toISOString(),
+                gdoc_revision: '',
+                signature: '',
+                payload: { action: 'coi_recusal', reason: reason }
+              });
+
+              if (!recentBotComment) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body: [
+                    `### Conflict of Interest Recusal`,
+                    '',
+                    `@${actor} has recused themselves from this submission.`,
+                    '',
+                    `**Reason:** ${reason}`,
+                    '',
+                    `This recusal has been recorded in the RVF graph ` +
+                    `and attestation log.`,
+                    '',
+                    '---',
+                    '*Recorded by the Governance Agent.*'
+                  ].join('\n')
+                });
+              }
+
+              return;
+            }
+
+            // ---------------------------------------------------------------
+            // /override -- Record rationale for manual override
+            // ---------------------------------------------------------------
+            if (commandWord === '/override') {
+              // SEC-012: Check submitter cannot override own issue
+              if (actor === submitter) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body: `@${actor} Submitters cannot override their own submission.`
+                });
+                return;
+              }
+
+              const rationale = sanitize(
+                comment.replace(/^\/override\s*/i, ''),
+                1000
+              );
+
+              if (!rationale || rationale.length < 20) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body: [
+                    `@${actor} Override requires a rationale of at least ` +
+                    `20 characters. Usage:`,
+                    '```',
+                    '/override The committee determined that ...',
+                    '```'
+                  ].join('\n')
+                });
+                return;
+              }
+
+              appendAttestation({
+                type: 'decision',
+                submission_id: `issue-${issueNumber}`,
+                from_state: labels.find(l => l.startsWith('status:')) || 'unknown',
+                to_state: 'override',
+                actor: actor,
+                timestamp: new Date().toISOString(),
+                gdoc_revision: '',
+                signature: '',
+                payload: {
+                  action: 'manual_override',
+                  rationale: rationale
+                }
+              });
+
+              if (!recentBotComment) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body: [
+                    `### Manual Override Recorded`,
+                    '',
+                    `@${actor} has recorded a manual override.`,
+                    '',
+                    `**Rationale:** ${rationale}`,
+                    '',
+                    `This override has been logged in the attestation record ` +
+                    `for audit purposes.`,
+                    '',
+                    '---',
+                    '*Recorded by the Governance Agent.*'
+                  ].join('\n')
+                });
+              }
+
+              return;
+            }
+
+            // ---------------------------------------------------------------
+            // /status -- Report current state and pending actions
+            // ---------------------------------------------------------------
+            if (commandWord === '/status') {
+              const currentStatus = labels
+                .filter(l => l.startsWith('status:'))
+                .join(', ') || 'No status label';
+
+              const categoryLabels = labels
+                .filter(l => l.startsWith('category:'))
+                .join(', ') || 'Uncategorized';
+
+              // Count scores
+              const scoreComments = allComments.filter(
+                c =>
+                  c.body.includes('Score from @') &&
+                  c.user.login === 'github-actions[bot]'
+              );
+
+              // Count votes
+              const voteTypes = {};
+              for (const c of allComments) {
+                if (c.user.type === 'Bot') continue;
+                if (c.user.login === submitter) continue;
+                const voteMatch = c.body.match(
+                  /^\/vote\s+(approve|decline|defer|escalate|no-escalate|retract|no-retract)\s*$/
+                );
+                if (voteMatch) {
+                  voteTypes[c.user.login] = voteMatch[1];
+                }
+              }
+
+              const voteSummary = {};
+              for (const v of Object.values(voteTypes)) {
+                voteSummary[v] = (voteSummary[v] || 0) + 1;
+              }
+              const voteLines = Object.entries(voteSummary)
+                .map(([k, v]) => `${k}: ${v}`)
+                .join(', ') || 'No votes cast';
+
+              // Check for CoI recusals
+              const coiRecusals = allComments.filter(
+                c =>
+                  c.body.includes('Conflict of Interest Recusal') &&
+                  c.user.login === 'github-actions[bot]'
+              );
+
+              // Determine pending actions based on state
+              const pendingActions = [];
+              if (labels.includes('status:pending-review')) {
+                pendingActions.push(
+                  'Awaiting committee scores (`/score`)'
+                );
+              }
+              if (labels.includes('status:scoring')) {
+                const quorum = parseInt(process.env.QUORUM || '3');
+                const needed = quorum - scoreComments.length;
+                if (needed > 0) {
+                  pendingActions.push(
+                    `${needed} more score(s) needed to reach quorum`
+                  );
+                } else {
+                  pendingActions.push(
+                    'Quorum reached. Awaiting escalation vote.'
+                  );
+                }
+              }
+              if (labels.includes('status:escalation-vote')) {
+                pendingActions.push(
+                  'Escalation vote in progress (`/vote escalate` or `/vote no-escalate`)'
+                );
+              }
+              if (labels.includes('status:validation-vote')) {
+                pendingActions.push(
+                  'Validation vote in progress (`/vote approve`, `/vote decline`, or `/vote defer`)'
+                );
+              }
+              if (pendingActions.length === 0) {
+                pendingActions.push('No pending actions.');
+              }
+
+              if (!recentBotComment) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body: [
+                    `### Status Report (Governance Agent)`,
+                    '',
+                    `| Field | Value |`,
+                    `|-------|-------|`,
+                    `| Status | ${currentStatus} |`,
+                    `| Category | ${categoryLabels} |`,
+                    `| Submitter | @${submitter} |`,
+                    `| Scores recorded | ${scoreComments.length} |`,
+                    `| Votes | ${voteLines} |`,
+                    `| CoI recusals | ${coiRecusals.length} |`,
+                    '',
+                    '**Pending actions:**',
+                    ...pendingActions.map(a => `- ${a}`),
+                    '',
+                    '---',
+                    '*Generated by the Governance Agent.*'
+                  ].join('\n')
+                });
+              }
+
+              return;
+            }
+
+            // ---------------------------------------------------------------
+            // For /score, /vote, /retract: the existing mechanical workflows
+            // (scoring.yml, escalation-vote.yml, validation-vote.yml,
+            // retraction.yml) handle these commands directly.
+            //
+            // This job adds intelligence AFTER those workflows run:
+            // - Record command in attestation log
+            // - Check state machine validity
+            // - Post supplementary context if needed
+            // ---------------------------------------------------------------
+            if (
+              commandWord === '/score' ||
+              commandWord === '/vote' ||
+              commandWord === '/retract'
+            ) {
+              // SEC-012: Submitter cannot score/vote on own submission
+              if (actor === submitter && commandWord !== '/retract') {
+                // The mechanical workflows already enforce this, but we
+                // log the attempt for audit
+                appendAttestation({
+                  type: 'decision',
+                  submission_id: `issue-${issueNumber}`,
+                  from_state: 'active',
+                  to_state: 'blocked',
+                  actor: actor,
+                  timestamp: new Date().toISOString(),
+                  gdoc_revision: '',
+                  signature: '',
+                  payload: {
+                    action: 'self_vote_blocked',
+                    command: comment
+                  }
+                });
+                return;
+              }
+
+              // Record in attestation log
+              appendAttestation({
+                type: 'attestation',
+                submission_id: `issue-${issueNumber}`,
+                from_state:
+                  labels.find(l => l.startsWith('status:')) || 'unknown',
+                to_state: 'command-processed',
+                actor: actor,
+                timestamp: new Date().toISOString(),
+                gdoc_revision: '',
+                signature: '',
+                payload: {
+                  command: commandWord,
+                  raw: sanitize(comment, 500)
+                }
+              });
+
+              // State machine guard checks
+              const stateGuards = {
+                '/score': [
+                  'status:pending-review',
+                  'status:scoring'
+                ],
+                '/vote': [
+                  'status:scoring',
+                  'status:escalation-vote',
+                  'status:validation-vote'
+                ],
+                '/retract': ['status:approved']
+              };
+
+              const validStates = stateGuards[commandWord] || [];
+              const inValidState = validStates.some(s =>
+                labels.includes(s)
+              );
+
+              if (!inValidState && validStates.length > 0) {
+                // State machine violation. The mechanical workflow may
+                // still process it, but we flag it.
+                if (!recentBotComment) {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    body: [
+                      `> **State machine note:** \`${commandWord}\` ` +
+                      `was issued in state ` +
+                      `\`${labels.filter(l => l.startsWith('status:')).join(', ') || 'none'}\`. ` +
+                      `Expected states: ${validStates.map(s => `\`${s}\``).join(', ')}.`,
+                      '',
+                      'The command may still be processed by the ' +
+                      'mechanical workflow, but this state transition ' +
+                      'is outside the standard flow.',
+                      '',
+                      '---',
+                      '*State machine check by the Governance Agent.*'
+                    ].join('\n')
+                  });
+                }
+              }
+            }
+
+      - name: Commit attestation and graph updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/rvf/attestation.jsonl data/rvf/graph.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Attestation: command processed on issue #${{ github.event.issue.number }}"
+          git pull --rebase origin main
+          git push
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Weekly Monitor
+  # Runs every Monday at 9am UTC. Checks approved projects for health signals:
+  # commit frequency, license presence, maintainer activity. Flags risks when
+  # projects show signs of abandonment or compliance issues.
+  # ---------------------------------------------------------------------------
+  weekly-monitor:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'schedule' &&
+      github.event.schedule == '0 9 * * 1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+
+      - name: Monitor approved projects
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
+        with:
+          script: |
+            const fs = require('fs');
+            const staleThreshold = parseInt(
+              process.env.STALE_THRESHOLD_DAYS || '90'
+            );
+            const now = Date.now();
+            const msPerDay = 86400000;
+
+            // Load approved projects
+            let projects;
+            try {
+              projects = JSON.parse(
+                fs.readFileSync(
+                  process.env.APPROVED_PROJECTS_PATH ||
+                    'data/approved-projects.json',
+                  'utf8'
+                )
+              );
+              if (!Array.isArray(projects)) {
+                core.warning('approved-projects.json is not an array');
+                return;
+              }
+            } catch (e) {
+              core.warning(`Could not read approved projects: ${e.message}`);
+              return;
+            }
+
+            const activeProjects = projects.filter(
+              p => p.status === 'active'
+            );
+
+            if (activeProjects.length === 0) {
+              core.info('No active projects to monitor.');
+              return;
+            }
+
+            const risks = [];
+            const healthy = [];
+
+            for (const project of activeProjects) {
+              const repoUrl = project.repo_url || '';
+              // Parse owner/repo from GitHub URL
+              const match = repoUrl.match(
+                /github\.com\/([\w.-]+)\/([\w.-]+)/
+              );
+              if (!match) {
+                risks.push({
+                  project: project.id || project.name,
+                  issue: 'Invalid or missing repository URL',
+                  severity: 'high'
+                });
+                continue;
+              }
+
+              const [, owner, repo] = match;
+
+              try {
+                // Check recent commits
+                const commits = await github.rest.repos.listCommits({
+                  owner,
+                  repo: repo.replace(/\/$/, ''),
+                  per_page: 1
+                });
+
+                const lastCommitDate = commits.data.length > 0
+                  ? new Date(
+                      commits.data[0].commit.committer.date
+                    ).getTime()
+                  : 0;
+                const daysSinceCommit = Math.floor(
+                  (now - lastCommitDate) / msPerDay
+                );
+
+                if (daysSinceCommit > staleThreshold) {
+                  risks.push({
+                    project: project.id || project.name,
+                    issue:
+                      `No commits in ${daysSinceCommit} days ` +
+                      `(threshold: ${staleThreshold})`,
+                    severity: daysSinceCommit > 180 ? 'high' : 'medium'
+                  });
+                }
+
+                // Check license file
+                try {
+                  await github.rest.licenses.getForRepo({
+                    owner,
+                    repo: repo.replace(/\/$/, '')
+                  });
+                } catch (licenseErr) {
+                  if (licenseErr.status === 404) {
+                    risks.push({
+                      project: project.id || project.name,
+                      issue: 'No license file detected',
+                      severity: 'high'
+                    });
+                  }
+                }
+
+                // Check if repo is archived
+                const repoInfo = await github.rest.repos.get({
+                  owner,
+                  repo: repo.replace(/\/$/, '')
+                });
+
+                if (repoInfo.data.archived) {
+                  risks.push({
+                    project: project.id || project.name,
+                    issue: 'Repository has been archived',
+                    severity: 'high'
+                  });
+                }
+
+                if (
+                  daysSinceCommit <= staleThreshold &&
+                  !repoInfo.data.archived
+                ) {
+                  healthy.push({
+                    project: project.id || project.name,
+                    last_commit_days_ago: daysSinceCommit
+                  });
+                }
+              } catch (err) {
+                if (err.status === 404) {
+                  risks.push({
+                    project: project.id || project.name,
+                    issue: 'Repository not found (deleted or private)',
+                    severity: 'critical'
+                  });
+                } else {
+                  risks.push({
+                    project: project.id || project.name,
+                    issue: `API error: ${err.message}`,
+                    severity: 'low'
+                  });
+                }
+              }
+            }
+
+            // Only open an issue if there are risks to report
+            if (risks.length === 0) {
+              core.info(
+                `All ${activeProjects.length} active projects are healthy.`
+              );
+              return;
+            }
+
+            // Build risk report
+            const riskLines = risks.map(r => {
+              const icon =
+                r.severity === 'critical'
+                  ? '**CRITICAL**'
+                  : r.severity === 'high'
+                  ? '**HIGH**'
+                  : r.severity === 'medium'
+                  ? 'MEDIUM'
+                  : 'LOW';
+              return `| ${r.project} | ${icon} | ${r.issue} |`;
+            });
+
+            const date = new Date().toISOString().split('T')[0];
+
+            // Check for existing open monitoring issue to avoid duplicates
+            const existingIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'monitoring',
+              state: 'open',
+              per_page: 5
+            });
+
+            const recentMonitoring = existingIssues.data.find(
+              i =>
+                i.title.includes('Weekly Project Health') &&
+                Date.now() - new Date(i.created_at).getTime() <
+                  7 * msPerDay
+            );
+
+            if (recentMonitoring) {
+              // Update existing issue with new data
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: recentMonitoring.number,
+                body: [
+                  `### Updated Health Check (${date})`,
+                  '',
+                  `| Project | Severity | Issue |`,
+                  `|---------|----------|-------|`,
+                  ...riskLines,
+                  '',
+                  `Healthy projects: ${healthy.length}/${activeProjects.length}`,
+                  '',
+                  '---',
+                  '*Weekly monitoring by the Governance Agent.*'
+                ].join('\n')
+              });
+            } else {
+              // Create new monitoring issue
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Weekly Project Health Report -- ${date}`,
+                body: [
+                  '### Project Health Monitoring',
+                  '',
+                  `Scanned ${activeProjects.length} active projects on ${date}.`,
+                  '',
+                  `| Project | Severity | Issue |`,
+                  `|---------|----------|-------|`,
+                  ...riskLines,
+                  '',
+                  `**Summary:** ${risks.length} risk(s) detected, ` +
+                  `${healthy.length} project(s) healthy.`,
+                  '',
+                  '### Recommended Actions',
+                  '',
+                  ...risks
+                    .filter(r =>
+                      r.severity === 'critical' || r.severity === 'high'
+                    )
+                    .map(
+                      r =>
+                        `- [ ] **${r.project}**: ${r.issue} -- ` +
+                        `investigate and take action`
+                    ),
+                  '',
+                  '---',
+                  '*Generated by the Governance Agent weekly monitoring job.*'
+                ].join('\n'),
+                labels: ['monitoring', 'governance-agent']
+              });
+            }
+
+  # ---------------------------------------------------------------------------
+  # Job 4: Drift Detection
+  # Runs monthly on the 1st. Compares the governance GDoc sections against
+  # stored embeddings to detect material semantic drift. If sections have
+  # changed substantially, opens an issue documenting the drift and which
+  # spec elements are affected.
+  # ---------------------------------------------------------------------------
+  drift-detection:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'schedule' &&
+      github.event.schedule == '0 0 1 * *'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
+        with:
+          node-version: '20'
+
+      - name: Detect GDoc drift
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
+        env:
+          EMBEDDING_API_KEY: ${{ secrets.EMBEDDING_API_KEY }}
+          GDOC_API_KEY: ${{ secrets.GDOC_API_KEY }}
+          GOVERNANCE_GDOC_ID: ${{ vars.GOVERNANCE_GDOC_ID }}
+        with:
+          script: |
+            const fs = require('fs');
+
+            // ---------------------------------------------------------------
+            // Section-to-spec traceability map
+            // Maps GDoc section headings to the spec elements they govern.
+            // Used to determine impact when drift is detected.
+            // ---------------------------------------------------------------
+            const sectionSpecMap = {
+              'Submission Categories': [
+                'on-submission.yml (category extraction)',
+                'scoring.yml (interpretation thresholds)',
+                'graph.json (submission type nodes)'
+              ],
+              'Scoring Rubric': [
+                'scoring.yml (criteria parsing, score ranges)',
+                'approve-project.yml (score aggregation)',
+                'embeddings.json (score metadata)'
+              ],
+              'Escalation Criteria': [
+                'escalation-vote.yml (vote logic)',
+                'governance-agent.yml (case-brief score predictions)'
+              ],
+              'Validation Process': [
+                'validation-vote.yml (vote tallying, quorum)',
+                'approve-project.yml (registry update)'
+              ],
+              'Retraction Process': [
+                'retraction.yml (retraction vote, registry update)',
+                'graph.json (retracted submission nodes)'
+              ],
+              'Conflict of Interest Policy': [
+                'governance-agent.yml (CoI detection, BFS paths)',
+                'graph.json (affiliation edges)'
+              ],
+              'Committee Membership': [
+                'graph.json (committee member nodes)',
+                'All workflows (SEC-003 association checks)'
+              ],
+              'Code of Conduct': [
+                'retraction.yml (grounds for retraction)'
+              ]
+            };
+
+            // ---------------------------------------------------------------
+            // Without a live GDoc API + embedding API, this job performs a
+            // structural check: verify that the spec files reference the
+            // expected sections and that the traceability map is complete.
+            //
+            // When GDOC_API_KEY and EMBEDDING_API_KEY are configured:
+            // 1. Fetch GDoc via Google Docs API
+            // 2. Split into sections by heading
+            // 3. Embed each section via the embedding API
+            // 4. Compare against stored section embeddings (a separate file
+            //    data/rvf/gdoc-section-embeddings.json, created on first run)
+            // 5. Flag sections where cosine similarity < 0.85 (material drift)
+            // ---------------------------------------------------------------
+
+            const gdocId = process.env.GOVERNANCE_GDOC_ID;
+            const embeddingKey = process.env.EMBEDDING_API_KEY;
+            const gdocKey = process.env.GDOC_API_KEY;
+
+            // Check if we have the required secrets
+            if (!gdocId || !embeddingKey || !gdocKey) {
+              core.info(
+                'Drift detection skipped: GOVERNANCE_GDOC_ID, ' +
+                'EMBEDDING_API_KEY, or GDOC_API_KEY not configured. ' +
+                'Running structural validation only.'
+              );
+
+              // Structural validation: check that key files exist
+              const requiredFiles = [
+                'data/rvf/graph.json',
+                'data/rvf/embeddings.json',
+                'data/rvf/attestation.jsonl',
+                'data/approved-projects.json'
+              ];
+
+              const missingFiles = requiredFiles.filter(
+                f => !fs.existsSync(f)
+              );
+
+              if (missingFiles.length > 0) {
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title:
+                    'Structural Integrity Check -- Missing RVF Files',
+                  body: [
+                    '### Monthly Structural Integrity Check',
+                    '',
+                    'The following required RVF files are missing:',
+                    '',
+                    ...missingFiles.map(f => `- \`${f}\``),
+                    '',
+                    'These files are required for the governance agent ' +
+                    'to function correctly.',
+                    '',
+                    '---',
+                    '*Generated by the Governance Agent drift detection job.*'
+                  ].join('\n'),
+                  labels: ['governance-agent', 'drift-detection']
+                });
+              }
+
+              // Validate graph schema
+              try {
+                const graph = JSON.parse(
+                  fs.readFileSync('data/rvf/graph.json', 'utf8')
+                );
+                const issues = [];
+
+                if (!graph.version) {
+                  issues.push('graph.json missing version field');
+                }
+                if (
+                  !Array.isArray(graph.nodes) ||
+                  graph.nodes.length === 0
+                ) {
+                  issues.push('graph.json has no nodes');
+                }
+                if (
+                  !Array.isArray(graph.edges) ||
+                  graph.edges.length === 0
+                ) {
+                  issues.push('graph.json has no edges');
+                }
+
+                // Verify all edge targets and sources reference valid nodes
+                const nodeIds = new Set(graph.nodes.map(n => n.id));
+                for (const edge of graph.edges || []) {
+                  if (!nodeIds.has(edge.source) && !edge.source.startsWith('issue-')) {
+                    issues.push(
+                      `Edge source "${edge.source}" not found in nodes`
+                    );
+                  }
+                  if (!nodeIds.has(edge.target) && !edge.target.startsWith('issue-')) {
+                    issues.push(
+                      `Edge target "${edge.target}" not found in nodes`
+                    );
+                  }
+                }
+
+                if (issues.length > 0) {
+                  core.warning(
+                    `Graph validation issues: ${issues.join('; ')}`
+                  );
+                }
+              } catch (e) {
+                core.warning(`Could not validate graph: ${e.message}`);
+              }
+
+              core.info('Structural validation complete.');
+              return;
+            }
+
+            // ---------------------------------------------------------------
+            // Full drift detection (when API keys are configured)
+            // ---------------------------------------------------------------
+            const https = require('https');
+
+            function httpsGet(url) {
+              return new Promise((resolve, reject) => {
+                https.get(url, res => {
+                  let data = '';
+                  res.on('data', chunk => { data += chunk; });
+                  res.on('end', () => resolve(data));
+                  res.on('error', reject);
+                });
+              });
+            }
+
+            // Fetch GDoc content
+            let gdocContent;
+            try {
+              const gdocUrl =
+                `https://docs.googleapis.com/v1/documents/${gdocId}` +
+                `?key=${gdocKey}`;
+              const raw = await httpsGet(gdocUrl);
+              gdocContent = JSON.parse(raw);
+            } catch (e) {
+              core.setFailed(`Failed to fetch GDoc: ${e.message}`);
+              return;
+            }
+
+            // Extract sections by heading
+            const sections = [];
+            let currentHeading = 'Preamble';
+            let currentText = '';
+
+            for (const element of gdocContent.body?.content || []) {
+              if (element.paragraph) {
+                const style =
+                  element.paragraph.paragraphStyle?.namedStyleType;
+                const text = (element.paragraph.elements || [])
+                  .map(e => e.textRun?.content || '')
+                  .join('');
+
+                if (
+                  style &&
+                  (style.startsWith('HEADING') ||
+                    style === 'TITLE')
+                ) {
+                  if (currentText.trim()) {
+                    sections.push({
+                      heading: currentHeading,
+                      text: currentText.trim()
+                    });
+                  }
+                  currentHeading = text.trim();
+                  currentText = '';
+                } else {
+                  currentText += text;
+                }
+              }
+            }
+            if (currentText.trim()) {
+              sections.push({
+                heading: currentHeading,
+                text: currentText.trim()
+              });
+            }
+
+            // Load stored section embeddings (from previous run)
+            const storedPath = 'data/rvf/gdoc-section-embeddings.json';
+            let storedSections = {};
+            try {
+              storedSections = JSON.parse(
+                fs.readFileSync(storedPath, 'utf8')
+              );
+            } catch (e) {
+              // First run, no stored embeddings
+            }
+
+            // Compute embeddings and compare
+            // (placeholder for actual embedding API call)
+            const driftThreshold = 0.85;
+            const driftedSections = [];
+
+            for (const section of sections) {
+              const storedHash = storedSections[section.heading]?.textHash;
+              // Simple text hash comparison as baseline
+              const crypto = require('crypto');
+              const currentHash = crypto
+                .createHash('sha256')
+                .update(section.text)
+                .digest('hex');
+
+              if (storedHash && storedHash !== currentHash) {
+                const affected =
+                  sectionSpecMap[section.heading] || ['Unknown spec elements'];
+                driftedSections.push({
+                  heading: section.heading,
+                  affected: affected
+                });
+              }
+
+              // Update stored hash
+              storedSections[section.heading] = {
+                textHash: currentHash,
+                lastChecked: new Date().toISOString()
+              };
+            }
+
+            // Save updated section hashes
+            fs.writeFileSync(
+              storedPath,
+              JSON.stringify(storedSections, null, 2) + '\n'
+            );
+
+            // Report drift
+            if (driftedSections.length > 0) {
+              const driftLines = driftedSections.map(d => [
+                `#### ${d.heading}`,
+                '',
+                'Affected spec elements:',
+                ...d.affected.map(a => `- ${a}`),
+                ''
+              ]).flat();
+
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title:
+                  `Constitutional drift detected -- ` +
+                  `${driftedSections.length} section(s) changed`,
+                body: [
+                  '### GDoc Constitutional Drift Report',
+                  '',
+                  `The monthly drift detection scan found ` +
+                  `${driftedSections.length} section(s) in the ` +
+                  `governance document that have changed since the ` +
+                  `last check.`,
+                  '',
+                  'Changes to the governance document may require ' +
+                  'corresponding updates to the automation workflows ' +
+                  'and RVF data files.',
+                  '',
+                  ...driftLines,
+                  '### Required Actions',
+                  '',
+                  '- [ ] Review each changed section against the spec',
+                  '- [ ] Update affected workflows if needed',
+                  '- [ ] Update RVF graph/embeddings if entity definitions changed',
+                  '- [ ] Record any ADR for significant governance changes',
+                  '',
+                  '---',
+                  '*Generated by the Governance Agent drift detection job.*'
+                ].join('\n'),
+                labels: ['governance-agent', 'drift-detection']
+              });
+            } else {
+              core.info(
+                'No drift detected. Governance document is in sync.'
+              );
+            }
+
+      - name: Commit section embedding updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/rvf/
+          git diff --cached --quiet && exit 0
+          git commit -m "Drift detection: update GDoc section hashes"
+          git pull --rebase origin main
+          git push

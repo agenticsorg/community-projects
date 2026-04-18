@@ -1,0 +1,294 @@
+{
+  "version": "1.0.0",
+  "description": "Seed knowledge graph for the RVF (Reasoning-Verification Framework) intelligence layer. Contains committee members, organizations, submissions, and relationships including at least one conflict-of-interest detection path.",
+  "nodes": [
+    {
+      "id": "committee-member-1",
+      "type": "person",
+      "properties": {
+        "role": "committee_member",
+        "team": "@agenticsorg/open-source-committee",
+        "display_name": "Committee Member 1",
+        "joined": "2026-01-15"
+      }
+    },
+    {
+      "id": "committee-member-2",
+      "type": "person",
+      "properties": {
+        "role": "committee_member",
+        "team": "@agenticsorg/open-source-committee",
+        "display_name": "Committee Member 2",
+        "joined": "2026-01-15"
+      }
+    },
+    {
+      "id": "committee-member-3",
+      "type": "person",
+      "properties": {
+        "role": "committee_member",
+        "team": "@agenticsorg/open-source-committee",
+        "display_name": "Committee Member 3",
+        "joined": "2026-02-01",
+        "note": "Also affiliated with acme-ai-labs, creating a potential CoI path"
+      }
+    },
+    {
+      "id": "committee-member-4",
+      "type": "person",
+      "properties": {
+        "role": "committee_member",
+        "team": "@agenticsorg/open-source-committee",
+        "display_name": "Committee Member 4",
+        "joined": "2026-02-01"
+      }
+    },
+    {
+      "id": "committee-member-5",
+      "type": "person",
+      "properties": {
+        "role": "committee_member",
+        "team": "@agenticsorg/open-source-committee",
+        "display_name": "Committee Member 5",
+        "joined": "2026-03-01"
+      }
+    },
+    {
+      "id": "submitter-acme",
+      "type": "person",
+      "properties": {
+        "role": "submitter",
+        "display_name": "Acme Submitter",
+        "github_username": "acme-dev-1"
+      }
+    },
+    {
+      "id": "submitter-indie",
+      "type": "person",
+      "properties": {
+        "role": "submitter",
+        "display_name": "Indie Developer",
+        "github_username": "indie-builder"
+      }
+    },
+    {
+      "id": "submitter-collective",
+      "type": "person",
+      "properties": {
+        "role": "submitter",
+        "display_name": "Collective Contributor",
+        "github_username": "oa-contributor"
+      }
+    },
+    {
+      "id": "submitter-anon",
+      "type": "person",
+      "properties": {
+        "role": "submitter",
+        "display_name": "Anonymous Researcher",
+        "github_username": "anon-researcher-99"
+      }
+    },
+    {
+      "id": "agentics-foundation",
+      "type": "organization",
+      "properties": {
+        "display_name": "Agentics Foundation",
+        "url": "https://github.com/agenticsorg",
+        "role": "governing_body"
+      }
+    },
+    {
+      "id": "acme-ai-labs",
+      "type": "organization",
+      "properties": {
+        "display_name": "Acme AI Labs",
+        "url": "https://github.com/acme-ai-labs",
+        "sector": "enterprise_ai"
+      }
+    },
+    {
+      "id": "open-agent-collective",
+      "type": "organization",
+      "properties": {
+        "display_name": "Open Agent Collective",
+        "url": "https://github.com/open-agent-collective",
+        "sector": "open_source_community"
+      }
+    },
+    {
+      "id": "agentic-policy-engine",
+      "type": "submission",
+      "properties": {
+        "category": "donation",
+        "score": 21,
+        "outcome": "escalated",
+        "title": "Agentic Policy Engine",
+        "description": "AI-driven policy engine for enterprise governance automation. Implements configurable rule sets, audit trails, and compliance checking for autonomous agent systems.",
+        "repo_url": "https://github.com/acme-ai-labs/agentic-policy-engine",
+        "submitted_date": "2026-03-10",
+        "issue_number": 101
+      }
+    },
+    {
+      "id": "agentic-log-visualizer",
+      "type": "submission",
+      "properties": {
+        "category": ["website-listing", "contributors"],
+        "score": 19,
+        "outcome": "approved",
+        "title": "Agentic Log Visualizer",
+        "description": "Visual dashboard for multi-agent system logs. Provides trace visualization, latency flame charts, message flow diagrams, and interactive debugging for distributed agent pipelines.",
+        "repo_url": "https://github.com/indie-builder/agentic-log-visualizer",
+        "submitted_date": "2026-03-15",
+        "issue_number": 102
+      }
+    },
+    {
+      "id": "unnamed-multi-agent-system",
+      "type": "submission",
+      "properties": {
+        "category": "support",
+        "score": 12,
+        "outcome": "deferred",
+        "title": "Multi-Agent Coordination Framework",
+        "description": "General-purpose multi-agent framework for task decomposition and parallel execution. Early stage, seeking mentorship and architectural guidance from the Foundation.",
+        "repo_url": "https://github.com/oa-contributor/multi-agent-framework",
+        "submitted_date": "2026-03-20",
+        "issue_number": 103
+      }
+    },
+    {
+      "id": "agentic-auto-executor",
+      "type": "submission",
+      "properties": {
+        "category": "retraction",
+        "score": 9,
+        "rescore": 9,
+        "outcome": "retracted",
+        "title": "Agentic Auto-Executor",
+        "description": "Autonomous code execution agent that generates, compiles, and runs arbitrary code in sandboxed environments. Security review flagged insufficient isolation boundaries and potential for prompt injection leading to sandbox escape.",
+        "repo_url": "https://github.com/anon-researcher-99/agentic-auto-executor",
+        "submitted_date": "2026-03-25",
+        "retracted_date": "2026-04-02",
+        "issue_number": 104
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "committee-member-1",
+      "target": "agentics-foundation",
+      "relationship": "member_of",
+      "properties": {
+        "since": "2026-01-15",
+        "role": "founding_member"
+      }
+    },
+    {
+      "source": "committee-member-2",
+      "target": "agentics-foundation",
+      "relationship": "member_of",
+      "properties": {
+        "since": "2026-01-15",
+        "role": "founding_member"
+      }
+    },
+    {
+      "source": "committee-member-3",
+      "target": "agentics-foundation",
+      "relationship": "member_of",
+      "properties": {
+        "since": "2026-02-01",
+        "role": "member"
+      }
+    },
+    {
+      "source": "committee-member-3",
+      "target": "acme-ai-labs",
+      "relationship": "affiliated_with",
+      "properties": {
+        "since": "2025-06-01",
+        "role": "technical_advisor",
+        "note": "Creates CoI path: committee-member-3 -> acme-ai-labs <- submitter-acme -> agentic-policy-engine"
+      }
+    },
+    {
+      "source": "committee-member-4",
+      "target": "agentics-foundation",
+      "relationship": "member_of",
+      "properties": {
+        "since": "2026-02-01",
+        "role": "member"
+      }
+    },
+    {
+      "source": "committee-member-5",
+      "target": "agentics-foundation",
+      "relationship": "member_of",
+      "properties": {
+        "since": "2026-03-01",
+        "role": "member"
+      }
+    },
+    {
+      "source": "committee-member-5",
+      "target": "open-agent-collective",
+      "relationship": "affiliated_with",
+      "properties": {
+        "since": "2025-09-01",
+        "role": "community_lead"
+      }
+    },
+    {
+      "source": "submitter-acme",
+      "target": "acme-ai-labs",
+      "relationship": "employed_by",
+      "properties": {
+        "since": "2024-01-01",
+        "role": "senior_engineer"
+      }
+    },
+    {
+      "source": "submitter-acme",
+      "target": "agentic-policy-engine",
+      "relationship": "submitted",
+      "properties": {
+        "date": "2026-03-10"
+      }
+    },
+    {
+      "source": "submitter-indie",
+      "target": "agentic-log-visualizer",
+      "relationship": "submitted",
+      "properties": {
+        "date": "2026-03-15"
+      }
+    },
+    {
+      "source": "submitter-collective",
+      "target": "open-agent-collective",
+      "relationship": "member_of",
+      "properties": {
+        "since": "2025-11-01",
+        "role": "contributor"
+      }
+    },
+    {
+      "source": "submitter-collective",
+      "target": "unnamed-multi-agent-system",
+      "relationship": "submitted",
+      "properties": {
+        "date": "2026-03-20"
+      }
+    },
+    {
+      "source": "submitter-anon",
+      "target": "agentic-auto-executor",
+      "relationship": "submitted",
+      "properties": {
+        "date": "2026-03-25"
+      }
+    }
+  ]
+}
