@@ -780,7 +780,9 @@ jobs:
               commandWord === '/retract'
             ) {
               // SEC-012: Submitter cannot score/vote on own submission
-              if (actor === submitter && commandWord !== '/retract') {
+              // GOVERNANCE_TEST_MODE: bypass for fork testing
+              const testMode = '${{ vars.GOVERNANCE_TEST_MODE }}' === 'true';
+              if (!testMode && actor === submitter && commandWord !== '/retract') {
                 // The mechanical workflows already enforce this, but we
                 // log the attempt for audit
                 appendAttestation({

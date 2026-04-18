@@ -53,11 +53,14 @@ jobs:
             });
             const submitter = issue.data.user.login;
 
+            // GOVERNANCE_TEST_MODE: bypass SEC-012 for fork testing
+            const testMode = '${{ vars.GOVERNANCE_TEST_MODE }}' === 'true';
+
             // Tally votes (one per unique user, last vote wins)
             const votes = {};
             for (const c of comments) {
               if (c.user.type === 'Bot') continue;
-              if (c.user.login === submitter) continue;
+              if (!testMode && c.user.login === submitter) continue;
               const body = c.body.trim();
               if (/^\/vote escalate\s*$/.test(body)) {
                 votes[c.user.login] = 'escalate';
