@@ -310,6 +310,15 @@
         "date": "2026-04-18",
         "reason": "I have a financial interest in the submitting organization"
       }
+    },
+    {
+      "source": "michaeloboyle",
+      "target": "issue-5",
+      "relationship": "recused_from",
+      "properties": {
+        "date": "2026-04-18",
+        "reason": "I am affiliated with Acme AI Labs, the submitting organization"
+      }
     }
   ]
 }
