@@ -127,8 +127,11 @@ describe('RVF Embeddings', () => {
     const data = loadEmbeddings(EMBEDDINGS_PATH);
     const results = findSimilar(data, 'donation', 3);
     assert.ok(results.length > 0);
-    // The donation entry should be the agentic-policy-engine
-    assert.equal(results[0].id, 'agentic-policy-engine');
+    // All results should be in the donation category
+    const donationIds = data.entries
+      .filter(e => e.metadata.category === 'donation')
+      .map(e => e.id);
+    assert.ok(donationIds.includes(results[0].id));
   });
 
   it('findSimilar: no results for unknown category', () => {
@@ -143,12 +146,21 @@ describe('RVF Embeddings', () => {
     assert.equal(results.length, 1);
   });
 
-  it('predictScoreRange: insufficient data returns message', () => {
+  it('predictScoreRange: returns range for donation category', () => {
     const data = loadEmbeddings(EMBEDDINGS_PATH);
-    // Only 1 donation entry in seed data
+    // With enriched seed data, donation has 4 entries (scores: 21, 18, 23, 15)
     const prediction = predictScoreRange(data, 'donation');
+    assert.ok(prediction.count >= 2, 'should have sufficient data');
+    assert.ok(typeof prediction.min === 'number');
+    assert.ok(typeof prediction.max === 'number');
+    assert.ok(prediction.min <= prediction.max);
+  });
+
+  it('predictScoreRange: insufficient data for unknown category', () => {
+    const data = loadEmbeddings(EMBEDDINGS_PATH);
+    const prediction = predictScoreRange(data, 'nonexistent-category');
     assert.ok(prediction.message.includes('Insufficient data'));
-    assert.equal(prediction.count, 1);
+    assert.equal(prediction.count, 0);
   });
 
   it('predictScoreRange: returns range when sufficient data exists', () => {

@@ -90,6 +90,38 @@
       }
     },
     {
+      "id": "michael-alpha",
+      "type": "person",
+      "properties": {
+        "role": "committee_member",
+        "team": "@agenticsorg/open-source-committee",
+        "display_name": "Committee Alpha",
+        "github_username": "michael-alpha",
+        "joined": "2026-04-18",
+        "note": "Test account. Also affiliated with acme-ai-labs, creating a CoI path for scenario 20."
+      }
+    },
+    {
+      "id": "michael-beta",
+      "type": "person",
+      "properties": {
+        "role": "committee_member",
+        "team": "@agenticsorg/open-source-committee",
+        "display_name": "Committee Beta",
+        "github_username": "michael-beta",
+        "joined": "2026-04-18"
+      }
+    },
+    {
+      "id": "michael-submitter",
+      "type": "person",
+      "properties": {
+        "role": "submitter",
+        "display_name": "Test Submitter",
+        "github_username": "michael-submitter"
+      }
+    },
+    {
       "id": "agentics-foundation",
       "type": "organization",
       "properties": {
@@ -291,6 +323,34 @@
       "relationship": "submitted",
       "properties": {
         "date": "2026-03-25"
+      }
+    },
+    {
+      "source": "michael-alpha",
+      "target": "agentics-foundation",
+      "relationship": "member_of",
+      "properties": {
+        "since": "2026-04-18",
+        "role": "test_committee_member"
+      }
+    },
+    {
+      "source": "michael-alpha",
+      "target": "acme-ai-labs",
+      "relationship": "affiliated_with",
+      "properties": {
+        "since": "2025-09-01",
+        "role": "advisor",
+        "note": "Planted CoI edge for scenario 20: michael-alpha -> acme-ai-labs <- submitter-acme"
+      }
+    },
+    {
+      "source": "michael-beta",
+      "target": "agentics-foundation",
+      "relationship": "member_of",
+      "properties": {
+        "since": "2026-04-18",
+        "role": "test_committee_member"
       }
     },
     {

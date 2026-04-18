@@ -16,7 +16,8 @@ jobs:
     if: |
       startsWith(github.event.comment.body, '/vote approve') ||
       startsWith(github.event.comment.body, '/vote decline') ||
-      startsWith(github.event.comment.body, '/vote defer')
+      startsWith(github.event.comment.body, '/vote defer') ||
+      startsWith(github.event.comment.body, '/vote approve-with-conditions')
     steps:
       - name: Tally validation votes
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
@@ -54,27 +55,24 @@ jobs:
             });
             const submitter = issue.data.user.login;
 
-            // GOVERNANCE_TEST_MODE: bypass SEC-012 for fork testing
-            const testMode = '${{ vars.GOVERNANCE_TEST_MODE }}' === 'true';
-
             // Tally votes (one per unique user, last vote wins)
-            // In test mode: each comment is a separate "voter" (simulates multiple collaborators)
             const votes = {};
-            let testVoterIndex = 0;
             for (const c of comments) {
               if (c.user.type === 'Bot') continue;
-              if (!testMode && c.user.login === submitter) continue;
-              const voterId = testMode ? `test-voter-${testVoterIndex++}` : c.user.login;
+              if (c.user.login === submitter) continue;  // SEC-012
+              const voterId = c.user.login;
               const body = c.body.trim();
-              if (/^\/vote approve\s*$/.test(body)) votes[voterId] = 'approve';
-              if (/^\/vote decline\s*$/.test(body)) votes[voterId] = 'decline';
-              if (/^\/vote defer\s*$/.test(body)) votes[voterId] = 'defer';
+              if (/^\/vote approve-with-conditions\s*$/.test(body)) votes[voterId] = 'approve-with-conditions';
+              else if (/^\/vote approve\s*$/.test(body)) votes[voterId] = 'approve';
+              else if (/^\/vote decline\s*$/.test(body)) votes[voterId] = 'decline';
+              else if (/^\/vote defer\s*$/.test(body)) votes[voterId] = 'defer';
             }
 
             const approve = Object.values(votes).filter(v => v === 'approve').length;
+            const approveWithConditions = Object.values(votes).filter(v => v === 'approve-with-conditions').length;
             const decline = Object.values(votes).filter(v => v === 'decline').length;
             const defer = Object.values(votes).filter(v => v === 'defer').length;
-            const totalVotes = approve + decline + defer;
+            const totalVotes = approve + approveWithConditions + decline + defer;
 
             // SEC-008: Rate limit - skip if bot posted a tally within last 5 minutes
             const recentBotTally = comments.find(c =>
@@ -107,17 +105,22 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: `**Validation Vote Tally** — ${totalVotes}/${quorum} votes cast (quorum not yet reached)\n\n| | Count |\n|---|---|\n| Approve | ${approve} |\n| Decline | ${decline} |\n| Defer | ${defer} |`
+                body: `**Validation Vote Tally** — ${totalVotes}/${quorum} votes cast (quorum not yet reached)\n\n| | Count |\n|---|---|\n| Approve | ${approve} |\n| Approve with Conditions | ${approveWithConditions} |\n| Decline | ${decline} |\n| Defer | ${defer} |`
               });
               return;
             }
 
             // SEC-010: Strict majority required, ties default to DEFERRED
+            // Approve and approve-with-conditions are counted separately for outcome determination
             let outcome, outcomeLabel;
-            if (approve > decline && approve > defer) {
+            const allApprove = approve + approveWithConditions;
+            if (approveWithConditions > 0 && approveWithConditions >= approve && allApprove > decline && allApprove > defer) {
+              outcome = 'APPROVED_WITH_CONDITIONS';
+              outcomeLabel = 'status:approved-with-conditions';
+            } else if (allApprove > decline && allApprove > defer) {
               outcome = 'APPROVED';
               outcomeLabel = 'status:approved';
-            } else if (decline > approve && decline > defer) {
+            } else if (decline > allApprove && decline > defer) {
               outcome = 'DECLINED';
               outcomeLabel = 'status:declined';
             } else {
@@ -145,7 +148,14 @@ jobs:
               labels: [outcomeLabel]
             });
 
-            const emoji = { APPROVED: '✅', DECLINED: '❌', DEFERRED: '⏸️' };
+            const emoji = { APPROVED: '✅', APPROVED_WITH_CONDITIONS: '✅⚠️', DECLINED: '❌', DEFERRED: '⏸️' };
+
+            const outcomeMessage = {
+              APPROVED: 'This project has been **approved** by the Open Source Committee. The submitter will be contacted with next steps.',
+              APPROVED_WITH_CONDITIONS: 'This project has been **approved with conditions** by the Open Source Committee. The submitter must address the conditions noted by committee members before proceeding.',
+              DEFERRED: 'This submission has been **deferred**. The submitter should provide additional information or clarification.',
+              DECLINED: 'This submission has been **declined** by the Open Source Committee.'
+            };
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -157,16 +167,13 @@ jobs:
                 `| | Count |`,
                 `|---|---|`,
                 `| Approve | ${approve} |`,
+                `| Approve with Conditions | ${approveWithConditions} |`,
                 `| Decline | ${decline} |`,
                 `| Defer | ${defer} |`,
                 '',
                 `Quorum: ${quorum} | Total votes: ${totalVotes}`,
                 '',
-                outcome === 'APPROVED'
-                  ? 'This project has been **approved** by the Open Source Committee. The submitter will be contacted with next steps.'
-                  : outcome === 'DEFERRED'
-                  ? 'This submission has been **deferred**. The submitter should provide additional information or clarification.'
-                  : 'This submission has been **declined** by the Open Source Committee.',
+                outcomeMessage[outcome],
                 '',
                 '---',
                 '*Automated validation vote result.*'

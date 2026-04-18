@@ -53,17 +53,12 @@ jobs:
             });
             const submitter = issue.data.user.login;
 
-            // GOVERNANCE_TEST_MODE: bypass SEC-012 for fork testing
-            const testMode = '${{ vars.GOVERNANCE_TEST_MODE }}' === 'true';
-
             // Tally votes (one per unique user, last vote wins)
-            // In test mode: each comment is a separate "voter" (simulates multiple collaborators)
             const votes = {};
-            let testVoterIndex = 0;
             for (const c of comments) {
               if (c.user.type === 'Bot') continue;
-              if (!testMode && c.user.login === submitter) continue;
-              const voterId = testMode ? `test-voter-${testVoterIndex++}` : c.user.login;
+              if (c.user.login === submitter) continue;  // SEC-012
+              const voterId = c.user.login;
               const body = c.body.trim();
               if (/^\/vote escalate\s*$/.test(body)) {
                 votes[voterId] = 'escalate';
@@ -152,7 +147,7 @@ jobs:
                   '',
                   'This submission does **not** require escalation. Proceeding to validation vote.',
                   '',
-                  'Committee members may now vote: `/vote approve`, `/vote decline`, or `/vote defer`.',
+                  'Committee members may now vote: `/vote approve`, `/vote approve-with-conditions`, `/vote decline`, or `/vote defer`.',
                   '',
                   '---',
                   '*Automated escalation vote result.*'
