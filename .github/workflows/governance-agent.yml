@@ -482,7 +482,7 @@ jobs:
             const recentBotComment = allComments.find(
               c =>
                 c.user.login === 'github-actions[bot]' &&
-                Date.now() - new Date(c.created_at).getTime() < 60000
+                Date.now() - new Date(c.created_at).getTime() < 10000
             );
 
             // Get current labels for state machine checks
