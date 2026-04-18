@@ -134,7 +134,10 @@
       "id": "agentic-log-visualizer",
       "type": "submission",
       "properties": {
-        "category": ["website-listing", "contributors"],
+        "category": [
+          "website-listing",
+          "contributors"
+        ],
         "score": 19,
         "outcome": "approved",
         "title": "Agentic Log Visualizer",
@@ -288,6 +291,15 @@
       "relationship": "submitted",
       "properties": {
         "date": "2026-03-25"
+      }
+    },
+    {
+      "source": "michaeloboyle",
+      "target": "issue-1",
+      "relationship": "recused_from",
+      "properties": {
+        "date": "2026-04-18",
+        "reason": "I am affiliated with Acme AI Labs, the submitting organization"
       }
     }
   ]
