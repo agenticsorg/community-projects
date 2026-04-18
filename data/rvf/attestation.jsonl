@@ -2,4 +2,4 @@
 
 {"type":"transition","submission_id":"issue-1","from_state":"new","to_state":"case-brief-generated","actor":"agent","timestamp":"2026-04-18T04:07:47.770Z","gdoc_revision":"","signature":"","payload":{"coi_flags":0,"similar_count":3,"category":"donation"}}
 {"type":"transition","submission_id":"issue-2","from_state":"new","to_state":"case-brief-generated","actor":"agent","timestamp":"2026-04-18T04:07:54.270Z","gdoc_revision":"","signature":"","payload":{"coi_flags":0,"similar_count":3,"category":"website-listing"}}
-{"type":"decision","submission_id":"issue-2","from_state":"active","to_state":"blocked","actor":"michaeloboyle","timestamp":"2026-04-18T04:09:50.551Z","gdoc_revision":"","signature":"","payload":{"action":"self_vote_blocked","command":"/score mission:4 quality:4 clarity:4 impact:4 risk:3"}}
+{"type":"decision","submission_id":"issue-1","from_state":"active","to_state":"blocked","actor":"michaeloboyle","timestamp":"2026-04-18T04:09:51.215Z","gdoc_revision":"","signature":"","payload":{"action":"self_vote_blocked","command":"/score mission:5 quality:4 clarity:5 impact:4 risk:3"}}
