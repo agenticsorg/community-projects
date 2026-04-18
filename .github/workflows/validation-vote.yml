@@ -58,14 +58,17 @@ jobs:
             const testMode = '${{ vars.GOVERNANCE_TEST_MODE }}' === 'true';
 
             // Tally votes (one per unique user, last vote wins)
+            // In test mode: each comment is a separate "voter" (simulates multiple collaborators)
             const votes = {};
+            let testVoterIndex = 0;
             for (const c of comments) {
               if (c.user.type === 'Bot') continue;
               if (!testMode && c.user.login === submitter) continue;
+              const voterId = testMode ? `test-voter-${testVoterIndex++}` : c.user.login;
               const body = c.body.trim();
-              if (/^\/vote approve\s*$/.test(body)) votes[c.user.login] = 'approve';
-              if (/^\/vote decline\s*$/.test(body)) votes[c.user.login] = 'decline';
-              if (/^\/vote defer\s*$/.test(body)) votes[c.user.login] = 'defer';
+              if (/^\/vote approve\s*$/.test(body)) votes[voterId] = 'approve';
+              if (/^\/vote decline\s*$/.test(body)) votes[voterId] = 'decline';
+              if (/^\/vote defer\s*$/.test(body)) votes[voterId] = 'defer';
             }
 
             const approve = Object.values(votes).filter(v => v === 'approve').length;
