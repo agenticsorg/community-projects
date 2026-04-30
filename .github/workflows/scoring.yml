@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     concurrency:
       group: scoring-${{ github.event.issue.number }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     if: startsWith(github.event.comment.body, '/score ')
     steps:
       - name: Parse and post score

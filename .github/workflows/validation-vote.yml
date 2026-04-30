@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     concurrency:
       group: validation-${{ github.event.issue.number }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     if: |
       startsWith(github.event.comment.body, '/vote approve') ||
       startsWith(github.event.comment.body, '/vote decline') ||

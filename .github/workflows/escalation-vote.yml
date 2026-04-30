@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     concurrency:
       group: escalation-${{ github.event.issue.number }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     if: |
       startsWith(github.event.comment.body, '/vote escalate') ||
       startsWith(github.event.comment.body, '/vote no-escalate')
