@@ -117,7 +117,13 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const quorum = parseInt(process.env.QUORUM);
+            let quorum;
+            try {
+              const config = JSON.parse(fs.readFileSync('data/committee-config.json', 'utf8'));
+              quorum = Math.floor(config.members.length / 2) + 1;
+            } catch (e) {
+              quorum = parseInt(process.env.QUORUM);
+            }
 
             // SEC-003: Verify commenter is an org member/collaborator
             const validAssociations = ['MEMBER', 'OWNER', 'COLLABORATOR'];

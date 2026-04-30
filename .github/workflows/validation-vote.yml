@@ -5,6 +5,7 @@ on:
     types: [created]
 
 permissions:
+  contents: read
   issues: write
 
 jobs:
@@ -19,13 +20,23 @@ jobs:
       startsWith(github.event.comment.body, '/vote defer') ||
       startsWith(github.event.comment.body, '/vote approve-with-conditions')
     steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+
       - name: Tally validation votes
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
         env:
           QUORUM: '3'
         with:
           script: |
-            const quorum = parseInt(process.env.QUORUM);
+            const fs = require('fs');
+            let quorum;
+            try {
+              const config = JSON.parse(fs.readFileSync('data/committee-config.json', 'utf8'));
+              quorum = Math.floor(config.members.length / 2) + 1;
+            } catch (e) {
+              quorum = parseInt(process.env.QUORUM);
+            }
 
             // SEC-003: Verify commenter is an org member/collaborator
             const validAssociations = ['MEMBER', 'OWNER', 'COLLABORATOR'];
