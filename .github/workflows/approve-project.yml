@@ -28,6 +28,81 @@ jobs:
             const body = context.payload.issue.body || '';
             const issueNumber = context.payload.issue.number;
 
+            // =============================================================
+            // P0-1: Phase Guard -- verify issue reached this state properly
+            // The status:approved label must have been applied by the
+            // validation-vote workflow (which checks voting outcomes).
+            // We verify the issue also has evidence of the voting phase
+            // (a bot comment with the vote result) to prevent manual
+            // label application bypassing the vote.
+            // =============================================================
+            const labels = (await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            })).data.map(l => l.name);
+
+            // Phase guard: issue must have status:approved or status:approved-with-conditions
+            const approvalLabels = ['status:approved', 'status:approved-with-conditions'];
+            if (!labels.some(l => approvalLabels.includes(l))) {
+              core.warning(`Phase guard: Issue #${issueNumber} does not have an approval label. Aborting.`);
+              return;
+            }
+
+            // Verify a validation vote result comment exists (bot evidence of completed vote)
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            });
+            const hasVoteResult = comments.some(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.includes('Validation Vote') &&
+              c.body.includes('Result:')
+            );
+            if (!hasVoteResult) {
+              core.warning(`Phase guard: Issue #${issueNumber} has no validation vote result. The approval label may have been applied manually, bypassing the voting process. Aborting.`);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: [
+                  '### Registration Blocked',
+                  '',
+                  'This issue has an approval label but no recorded validation vote result.',
+                  'The approval label may have been applied manually, bypassing the required voting process.',
+                  '',
+                  'A validation vote must be completed before a project can be registered.',
+                  '',
+                  '---',
+                  '*Phase guard: automated safety check.*'
+                ].join('\n')
+              });
+              return;
+            }
+
+            // =============================================================
+            // P0-3: Idempotency -- check for duplicate registry entry
+            // =============================================================
+            const registryPath = 'data/approved-projects.json';
+            let registry;
+            try {
+              registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+              if (!Array.isArray(registry)) {
+                throw new Error('Registry must be an array');
+              }
+            } catch (e) {
+              core.setFailed(`Registry validation failed: ${e.message}`);
+              return;
+            }
+
+            // Idempotency: skip if this issue already has a registry entry
+            const existingEntry = registry.find(p => p.issue_number === issueNumber);
+            if (existingEntry) {
+              core.info(`Idempotency: Issue #${issueNumber} already registered as "${existingEntry.id}" (status: ${existingEntry.status}). Skipping.`);
+              return;
+            }
+
             // SEC-007: Sanitize user input before embedding in registry
             function sanitize(input, maxLen = 500) {
               return input
@@ -68,12 +143,6 @@ jobs:
             }
 
             // Calculate total score from score comments
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issueNumber
-            });
-
             let totalScore = 0;
             let scoreCount = 0;
             for (const c of comments) {
@@ -84,19 +153,6 @@ jobs:
               }
             }
             const avgScore = scoreCount > 0 ? Math.round(totalScore / scoreCount) : 0;
-
-            // SEC-009: Validate registry schema
-            const registryPath = 'data/approved-projects.json';
-            let registry;
-            try {
-              registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
-              if (!Array.isArray(registry)) {
-                throw new Error('Registry must be an array');
-              }
-            } catch (e) {
-              core.setFailed(`Registry validation failed: ${e.message}`);
-              return;
-            }
 
             // Generate ID from issue number (avoids race condition with registry.length)
             const id = `proj-${String(issueNumber).padStart(3, '0')}`;
@@ -122,6 +178,7 @@ jobs:
             core.setOutput('issue_number', String(issueNumber));
 
       - name: Commit and push
+        if: steps.extract.outputs.project_id
         env:
           PROJECT_ID: ${{ steps.extract.outputs.project_id }}
           ISSUE_NUMBER: ${{ steps.extract.outputs.issue_number }}
@@ -134,6 +191,7 @@ jobs:
           git push
 
       - name: Post confirmation
+        if: steps.extract.outputs.project_id
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
         env:
           PROJECT_ID: ${{ steps.extract.outputs.project_id }}

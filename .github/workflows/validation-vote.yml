@@ -40,6 +40,36 @@ jobs:
               return;
             }
 
+            // =============================================================
+            // P0-1: Phase Guard -- validation vote only allowed in validation-vote phase
+            // =============================================================
+            const currentLabels = (await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            })).data.map(l => l.name);
+
+            const allowedPhases = ['status:validation-vote'];
+            if (!currentLabels.some(l => allowedPhases.includes(l))) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: [
+                  `@${context.payload.comment.user.login} Validation voting is not allowed in the current phase.`,
+                  '',
+                  `This issue must have the label: ${allowedPhases.join(', ')}.`,
+                  `Current labels: ${currentLabels.join(', ') || '(none)'}`,
+                  '',
+                  'The escalation vote must be completed first (resulting in "not escalated") before validation voting begins.',
+                  '',
+                  '---',
+                  '*Phase guard: automated safety check.*'
+                ].join('\n')
+              });
+              return;
+            }
+
             // Fetch all comments
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
@@ -84,28 +114,12 @@ jobs:
               return; // Skip posting duplicate tally
             }
 
-            // Ensure validation-vote label is applied
-            const labels = (await github.rest.issues.listLabelsOnIssue({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number
-            })).data.map(l => l.name);
-
-            if (!labels.includes('status:validation-vote')) {
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                labels: ['status:validation-vote']
-              });
-            }
-
             if (totalVotes < quorum) {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: `**Validation Vote Tally** — ${totalVotes}/${quorum} votes cast (quorum not yet reached)\n\n| | Count |\n|---|---|\n| Approve | ${approve} |\n| Approve with Conditions | ${approveWithConditions} |\n| Decline | ${decline} |\n| Defer | ${defer} |`
+                body: `**Validation Vote Tally** -- ${totalVotes}/${quorum} votes cast (quorum not yet reached)\n\n| | Count |\n|---|---|\n| Approve | ${approve} |\n| Approve with Conditions | ${approveWithConditions} |\n| Decline | ${decline} |\n| Defer | ${defer} |`
               });
               return;
             }
@@ -129,7 +143,7 @@ jobs:
             }
 
             // Remove old status labels, apply outcome
-            const statusLabels = labels.filter(l => l.startsWith('status:'));
+            const statusLabels = currentLabels.filter(l => l.startsWith('status:'));
             for (const sl of statusLabels) {
               try {
                 await github.rest.issues.removeLabel({
@@ -148,8 +162,6 @@ jobs:
               labels: [outcomeLabel]
             });
 
-            const emoji = { APPROVED: '✅', APPROVED_WITH_CONDITIONS: '✅⚠️', DECLINED: '❌', DEFERRED: '⏸️' };
-
             const outcomeMessage = {
               APPROVED: 'This project has been **approved** by the Open Source Committee. The submitter will be contacted with next steps.',
               APPROVED_WITH_CONDITIONS: 'This project has been **approved with conditions** by the Open Source Committee. The submitter must address the conditions noted by committee members before proceeding.',
@@ -162,7 +174,7 @@ jobs:
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body: [
-                `### Validation Vote — Result: ${emoji[outcome]} ${outcome}`,
+                `### Validation Vote -- Result: ${outcome}`,
                 '',
                 `| | Count |`,
                 `|---|---|`,

@@ -38,6 +38,34 @@ jobs:
               return;
             }
 
+            // =============================================================
+            // P0-1: Phase Guard -- escalation vote only allowed in scoring or escalation-vote phase
+            // =============================================================
+            const currentLabels = (await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            })).data.map(l => l.name);
+
+            const allowedPhases = ['status:scoring', 'status:escalation-vote'];
+            if (!currentLabels.some(l => allowedPhases.includes(l))) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: [
+                  `@${context.payload.comment.user.login} Escalation voting is not allowed in the current phase.`,
+                  '',
+                  `This issue must be in one of: ${allowedPhases.join(', ')}.`,
+                  `Current labels: ${currentLabels.join(', ') || '(none)'}`,
+                  '',
+                  '---',
+                  '*Phase guard: automated safety check.*'
+                ].join('\n')
+              });
+              return;
+            }
+
             // Fetch all comments
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
@@ -83,13 +111,7 @@ jobs:
             }
 
             // Apply label to track voting phase
-            const labels = (await github.rest.issues.listLabelsOnIssue({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number
-            })).data.map(l => l.name);
-
-            if (!labels.includes('status:escalation-vote')) {
+            if (!currentLabels.includes('status:escalation-vote')) {
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -104,7 +126,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: `**Escalation Vote Tally** — ${totalVotes}/${quorum} votes cast (quorum not yet reached)\n\n| | Count |\n|---|---|\n| Escalate | ${escalate} |\n| No Escalate | ${noEscalate} |`
+                body: `**Escalation Vote Tally** -- ${totalVotes}/${quorum} votes cast (quorum not yet reached)\n\n| | Count |\n|---|---|\n| Escalate | ${escalate} |\n| No Escalate | ${noEscalate} |`
               });
               return;
             }
@@ -125,7 +147,7 @@ jobs:
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
                 body: [
-                  '### Escalation Vote — Result: ESCALATED',
+                  '### Escalation Vote -- Result: ESCALATED',
                   '',
                   `Votes: ${escalate} escalate, ${noEscalate} no-escalate (quorum: ${quorum})`,
                   '',
@@ -141,7 +163,7 @@ jobs:
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
                 body: [
-                  '### Escalation Vote — Result: NOT ESCALATED',
+                  '### Escalation Vote -- Result: NOT ESCALATED',
                   '',
                   `Votes: ${escalate} escalate, ${noEscalate} no-escalate (quorum: ${quorum})`,
                   '',
