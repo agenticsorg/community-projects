@@ -11,7 +11,7 @@ permissions:
 jobs:
   register-project:
     runs-on: ubuntu-latest
-    if: github.event.label.name == 'status:approved'
+    if: github.event.label.name == 'status:approved' || github.event.label.name == 'status:approved-with-conditions'
     concurrency:
       group: registry-update
       cancel-in-progress: false
