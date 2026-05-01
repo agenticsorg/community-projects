@@ -86,7 +86,7 @@ TOTAL=$((MISSION + QUALITY + CLARITY + IMPACT + RISK))
 COMMENT="/score mission:${MISSION} quality:${QUALITY} clarity:${CLARITY} impact:${IMPACT} risk:${RISK}"
 
 if [[ -n "$FLAGS" ]]; then
-  COMMENT="${COMMENT} flags:${FLAGS}"
+  COMMENT="${COMMENT} --flags ${FLAGS}"
 fi
 
 if [[ -n "$RECOMMEND" ]]; then
