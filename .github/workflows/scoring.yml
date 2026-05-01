@@ -69,9 +69,11 @@ jobs:
             let valid = true;
 
             for (const c of criteria) {
-              const match = comment.match(new RegExp(`${c}:\\s*(\\d)`));
+              // Match full integer so values like "10" are rejected by the 0-5 guard
+              // instead of being silently truncated to the first digit.
+              const match = comment.match(new RegExp(`${c}:\\s*(\\d+)`));
               if (match) {
-                const val = parseInt(match[1]);
+                const val = parseInt(match[1], 10);
                 if (val < 0 || val > 5) { valid = false; break; }
                 scores[c] = val;
               } else {
