@@ -50,10 +50,12 @@ See the full [scoring template](docs/scoring-template.md) for criteria details a
 | `/vote escalate` | Escalation vote: requires senior leadership review |
 | `/vote no-escalate` | Escalation vote: no escalation needed |
 | `/vote approve` | Validation vote: approve the submission |
+| `/vote approve-with-conditions` | Validation vote: approve subject to stated conditions |
 | `/vote decline` | Validation vote: decline the submission |
 | `/vote defer` | Validation vote: defer pending more info |
 | `/retract` | Propose retraction of a previously approved project |
 | `/vote retract` | Vote to retract approval |
+| `/vote no-retract` | Vote against retraction (keep approval) |
 
 All votes require a quorum of 3 and pass by simple majority.
 
@@ -62,12 +64,16 @@ All votes require a quorum of 3 and pass by simple majority.
 | Label | Meaning |
 |-------|---------|
 | `status:pending-review` | Awaiting committee review |
+| `status:triaged` | Triaged, awaiting scoring |
 | `status:scoring` | Scoring in progress |
 | `status:escalation-vote` | Escalation vote underway |
 | `status:validation-vote` | Validation vote underway |
 | `status:approved` | Approved by committee |
+| `status:approved-with-conditions` | Approved subject to stated conditions |
 | `status:declined` | Declined |
 | `status:deferred` | Deferred, more info needed |
+| `status:monitoring` | Approved project under ongoing monitoring |
+| `status:retraction-proposed` | Retraction has been proposed |
 | `status:retracted` | Approval retracted |
 | `escalated` | Sent to senior leadership |
 

@@ -82,7 +82,9 @@ After scoring, use these commands in issue comments:
 - `/vote escalate` — This submission should be escalated to senior leadership
 - `/vote no-escalate` — No escalation needed
 - `/vote approve` — Approve the submission
+- `/vote approve-with-conditions` — Approve subject to stated conditions
 - `/vote decline` — Decline the submission
 - `/vote defer` — Defer pending more information
 - `/retract` — Propose retraction of a previously approved project
 - `/vote retract` — Vote to retract approval
+- `/vote no-retract` — Vote against retraction (keep approval)
