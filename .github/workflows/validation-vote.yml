@@ -135,17 +135,23 @@ jobs:
               return;
             }
 
-            // SEC-010: Strict majority required, ties default to DEFERRED
-            // Approve and approve-with-conditions are counted separately for outcome determination
-            let outcome, outcomeLabel;
+            // SEC-010: Strict majority (>50% of votes cast) required for a
+            // decisive outcome. Ties or no-majority default to DEFERRED.
+            // Approve and approve-with-conditions combine for the majority
+            // calculation; if combined approves reach majority, prefer
+            // with-conditions when its count is >= unconditional approves.
+            const majorityThreshold = Math.floor(totalVotes / 2) + 1;
             const allApprove = approve + approveWithConditions;
-            if (approveWithConditions > 0 && approveWithConditions >= approve && allApprove > decline && allApprove > defer) {
-              outcome = 'APPROVED_WITH_CONDITIONS';
-              outcomeLabel = 'status:approved-with-conditions';
-            } else if (allApprove > decline && allApprove > defer) {
-              outcome = 'APPROVED';
-              outcomeLabel = 'status:approved';
-            } else if (decline > allApprove && decline > defer) {
+            let outcome, outcomeLabel;
+            if (allApprove >= majorityThreshold) {
+              if (approveWithConditions >= approve) {
+                outcome = 'APPROVED_WITH_CONDITIONS';
+                outcomeLabel = 'status:approved-with-conditions';
+              } else {
+                outcome = 'APPROVED';
+                outcomeLabel = 'status:approved';
+              }
+            } else if (decline >= majorityThreshold) {
               outcome = 'DECLINED';
               outcomeLabel = 'status:declined';
             } else {
