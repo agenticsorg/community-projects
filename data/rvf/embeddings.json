@@ -1,0 +1,284 @@
+{
+  "version": "1.0.0",
+  "model": "all-MiniLM-L6-v2",
+  "dimensions": 384,
+  "generation_note": "Seed embeddings use deterministic seeds for reproducibility. To generate full vectors, use: np.random.RandomState(seed).randn(384).astype(np.float32) / 10. Cosine similarity targets: policy-engine <-> auto-executor ~0.7, policy-engine <-> multi-agent ~0.5, policy-engine <-> log-visualizer ~0.3.",
+  "entries": [
+    {
+      "id": "agentic-policy-engine",
+      "text": "AI-driven policy engine for enterprise governance automation. Implements configurable rule sets, audit trails, and compliance checking for autonomous agent systems.",
+      "embedding": {
+        "method": "deterministic_seed",
+        "seed": 42,
+        "dimensions": 384,
+        "norm": "l2_unit",
+        "generate": "np.random.RandomState(42).randn(384).astype(np.float32) / 10"
+      },
+      "vector_preview": [
+        0.0496, -0.0139, 0.0648, 0.1523, -0.0234,
+        -0.0234, 0.0579, -0.0469, 0.0768, -0.0102,
+        0.0341, -0.1205, 0.0443, -0.0258, 0.0323,
+        -0.0815, 0.0138, 0.0562, -0.0099, 0.0708
+      ],
+      "vector_hash": "sha256:a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+      "metadata": {
+        "category": "donation",
+        "score": 21,
+        "outcome": "escalated",
+        "issue_number": 101,
+        "submitted_date": "2026-03-10",
+        "semantic_cluster": "governance-policy-compliance"
+      }
+    },
+    {
+      "id": "agentic-log-visualizer",
+      "text": "Visual dashboard for multi-agent system logs. Provides trace visualization, latency flame charts, message flow diagrams, and interactive debugging for distributed agent pipelines.",
+      "embedding": {
+        "method": "deterministic_seed",
+        "seed": 137,
+        "dimensions": 384,
+        "norm": "l2_unit",
+        "generate": "np.random.RandomState(137).randn(384).astype(np.float32) / 10"
+      },
+      "vector_preview": [
+        -0.0312, 0.0891, -0.0178, 0.0024, 0.0556,
+        0.1032, -0.0689, 0.0147, -0.0423, 0.0765,
+        -0.0258, 0.0034, 0.0912, -0.0541, 0.0189,
+        0.0367, -0.1078, 0.0225, 0.0481, -0.0663
+      ],
+      "vector_hash": "sha256:b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
+      "metadata": {
+        "category": ["website-listing", "contributors"],
+        "score": 19,
+        "outcome": "approved",
+        "issue_number": 102,
+        "submitted_date": "2026-03-15",
+        "semantic_cluster": "observability-debugging-visualization"
+      }
+    },
+    {
+      "id": "unnamed-multi-agent-system",
+      "text": "General-purpose multi-agent framework for task decomposition and parallel execution. Early stage, seeking mentorship and architectural guidance from the Foundation.",
+      "embedding": {
+        "method": "deterministic_seed",
+        "seed": 256,
+        "dimensions": 384,
+        "norm": "l2_unit",
+        "generate": "np.random.RandomState(256).randn(384).astype(np.float32) / 10"
+      },
+      "vector_preview": [
+        0.0312, -0.0045, 0.0478, 0.0891, -0.0167,
+        -0.0098, 0.0423, -0.0312, 0.0534, -0.0078,
+        0.0256, -0.0712, 0.0367, -0.0189, 0.0245,
+        -0.0534, 0.0089, 0.0401, -0.0067, 0.0489
+      ],
+      "vector_hash": "sha256:c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4",
+      "metadata": {
+        "category": "support",
+        "score": 12,
+        "outcome": "deferred",
+        "issue_number": 103,
+        "submitted_date": "2026-03-20",
+        "semantic_cluster": "multi-agent-orchestration"
+      }
+    },
+    {
+      "id": "agentic-auto-executor",
+      "text": "Autonomous code execution agent that generates, compiles, and runs arbitrary code in sandboxed environments. Security review flagged insufficient isolation boundaries and potential for prompt injection leading to sandbox escape.",
+      "embedding": {
+        "method": "deterministic_seed",
+        "seed": 314,
+        "dimensions": 384,
+        "norm": "l2_unit",
+        "generate": "np.random.RandomState(314).randn(384).astype(np.float32) / 10"
+      },
+      "vector_preview": [
+        0.0423, -0.0112, 0.0556, 0.1289, -0.0201,
+        -0.0189, 0.0501, -0.0389, 0.0645, -0.0089,
+        0.0298, -0.0978, 0.0389, -0.0223, 0.0278,
+        -0.0689, 0.0112, 0.0478, -0.0084, 0.0601
+      ],
+      "vector_hash": "sha256:d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5",
+      "metadata": {
+        "category": "retraction",
+        "score": 9,
+        "rescore": 9,
+        "outcome": "retracted",
+        "issue_number": 104,
+        "submitted_date": "2026-03-25",
+        "retracted_date": "2026-04-02",
+        "semantic_cluster": "autonomous-execution-security",
+        "security_flags": ["insufficient-sandbox-isolation", "prompt-injection-risk"]
+      }
+    },
+    {
+      "id": "agentic-compliance-monitor",
+      "text": "Continuous compliance monitoring tool for AI agent deployments. Tracks regulatory requirements, generates audit reports, and alerts on policy violations in real-time.",
+      "embedding": { "method": "deterministic_seed", "seed": 500, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [0.0389, -0.0201, 0.0534, 0.1145, -0.0178, -0.0156, 0.0456, -0.0345, 0.0612, -0.0067],
+      "vector_hash": "sha256:e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
+      "metadata": { "category": "donation", "score": 18, "outcome": "approved", "issue_number": 201, "submitted_date": "2026-03-12", "semantic_cluster": "governance-policy-compliance" }
+    },
+    {
+      "id": "agentic-trust-framework",
+      "text": "Decentralized trust evaluation framework for multi-agent ecosystems. Implements reputation scoring, credential verification, and trust propagation across agent networks.",
+      "embedding": { "method": "deterministic_seed", "seed": 501, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [0.0412, -0.0178, 0.0589, 0.1234, -0.0212, -0.0189, 0.0523, -0.0412, 0.0701, -0.0089],
+      "vector_hash": "sha256:f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1",
+      "metadata": { "category": "donation", "score": 23, "outcome": "escalated", "issue_number": 202, "submitted_date": "2026-03-14", "semantic_cluster": "trust-reputation-systems" }
+    },
+    {
+      "id": "agentic-data-steward",
+      "text": "Data governance agent that manages data lineage, quality checks, and privacy compliance for AI pipelines. Automates data classification and retention policies.",
+      "embedding": { "method": "deterministic_seed", "seed": 502, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [0.0356, -0.0134, 0.0501, 0.0978, -0.0167, -0.0145, 0.0412, -0.0289, 0.0578, -0.0056],
+      "vector_hash": "sha256:a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2",
+      "metadata": { "category": "donation", "score": 15, "outcome": "approved", "issue_number": 203, "submitted_date": "2026-03-18", "semantic_cluster": "data-governance-privacy" }
+    },
+    {
+      "id": "agent-marketplace-portal",
+      "text": "Web portal for discovering and listing AI agents. Features agent profiles, capability search, usage analytics, and integration guides for the Agentics ecosystem.",
+      "embedding": { "method": "deterministic_seed", "seed": 510, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [-0.0245, 0.0734, -0.0134, 0.0089, 0.0478, 0.0891, -0.0567, 0.0112, -0.0356, 0.0623],
+      "vector_hash": "sha256:b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3",
+      "metadata": { "category": "website-listing", "score": 17, "outcome": "approved", "issue_number": 204, "submitted_date": "2026-03-16", "semantic_cluster": "agent-discovery-marketplace" }
+    },
+    {
+      "id": "agentic-docs-hub",
+      "text": "Centralized documentation hub for the Agentics Foundation. Provides API references, tutorials, best practices guides, and community-contributed examples.",
+      "embedding": { "method": "deterministic_seed", "seed": 511, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [-0.0278, 0.0812, -0.0156, 0.0045, 0.0501, 0.0945, -0.0623, 0.0134, -0.0389, 0.0689],
+      "vector_hash": "sha256:c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4",
+      "metadata": { "category": "website-listing", "score": 20, "outcome": "approved", "issue_number": 205, "submitted_date": "2026-03-19", "semantic_cluster": "documentation-community" }
+    },
+    {
+      "id": "agent-showcase-gallery",
+      "text": "Interactive gallery showcasing community-built agents with live demos, architecture diagrams, and performance benchmarks. Allows voting and feedback.",
+      "embedding": { "method": "deterministic_seed", "seed": 512, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [-0.0201, 0.0678, -0.0112, 0.0067, 0.0434, 0.0812, -0.0501, 0.0089, -0.0312, 0.0567],
+      "vector_hash": "sha256:d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5",
+      "metadata": { "category": "website-listing", "score": 14, "outcome": "deferred", "issue_number": 206, "submitted_date": "2026-03-22", "semantic_cluster": "community-showcase" }
+    },
+    {
+      "id": "agentic-contributor-onboarding",
+      "text": "Automated contributor onboarding system for open source AI projects. Handles CLA signing, repository access, mentorship matching, and first-issue assignment.",
+      "embedding": { "method": "deterministic_seed", "seed": 520, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [0.0178, 0.0456, 0.0234, 0.0567, 0.0312, 0.0134, -0.0289, 0.0201, -0.0178, 0.0389],
+      "vector_hash": "sha256:e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6",
+      "metadata": { "category": "contributors", "score": 16, "outcome": "approved", "issue_number": 207, "submitted_date": "2026-03-17", "semantic_cluster": "contributor-onboarding" }
+    },
+    {
+      "id": "agentic-mentorship-network",
+      "text": "Platform connecting experienced AI agent developers with newcomers. Structured mentorship tracks, code review matching, and community knowledge sharing.",
+      "embedding": { "method": "deterministic_seed", "seed": 521, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [0.0201, 0.0389, 0.0267, 0.0623, 0.0345, 0.0156, -0.0312, 0.0223, -0.0201, 0.0412],
+      "vector_hash": "sha256:f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7",
+      "metadata": { "category": "contributors", "score": 13, "outcome": "deferred", "issue_number": 208, "submitted_date": "2026-03-21", "semantic_cluster": "mentorship-community" }
+    },
+    {
+      "id": "agentic-hackathon-platform",
+      "text": "Online hackathon platform for AI agent development challenges. Team formation, project submission, judging workflows, and prize distribution for agent-building competitions.",
+      "embedding": { "method": "deterministic_seed", "seed": 522, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [0.0145, 0.0512, 0.0189, 0.0501, 0.0278, 0.0112, -0.0256, 0.0178, -0.0145, 0.0356],
+      "vector_hash": "sha256:a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "metadata": { "category": "contributors", "score": 22, "outcome": "approved", "issue_number": 209, "submitted_date": "2026-03-24", "semantic_cluster": "hackathons-competitions" }
+    },
+    {
+      "id": "agentic-debugging-assistant",
+      "text": "AI-powered debugging assistant for agent developers. Analyzes agent logs, suggests fixes for common failure patterns, and provides step-by-step troubleshooting guides.",
+      "embedding": { "method": "deterministic_seed", "seed": 530, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [0.0267, -0.0089, 0.0412, 0.0756, -0.0134, -0.0067, 0.0356, -0.0245, 0.0489, -0.0045],
+      "vector_hash": "sha256:b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9",
+      "metadata": { "category": "support", "score": 14, "outcome": "approved", "issue_number": 210, "submitted_date": "2026-03-13", "semantic_cluster": "debugging-troubleshooting" }
+    },
+    {
+      "id": "agentic-community-forum",
+      "text": "Community support forum for agent developers. Q&A format with AI-assisted answer suggestions, tag-based routing, and reputation system for expert contributors.",
+      "embedding": { "method": "deterministic_seed", "seed": 531, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [0.0234, -0.0056, 0.0378, 0.0689, -0.0112, -0.0045, 0.0312, -0.0201, 0.0445, -0.0034],
+      "vector_hash": "sha256:c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0",
+      "metadata": { "category": "support", "score": 11, "outcome": "deferred", "issue_number": 211, "submitted_date": "2026-03-23", "semantic_cluster": "community-support" }
+    },
+    {
+      "id": "agentic-training-lab",
+      "text": "Interactive training environment for learning AI agent development. Sandboxed execution, progressive tutorials, and hands-on exercises with real agent frameworks.",
+      "embedding": { "method": "deterministic_seed", "seed": 532, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [0.0289, -0.0112, 0.0445, 0.0812, -0.0156, -0.0089, 0.0378, -0.0267, 0.0512, -0.0056],
+      "vector_hash": "sha256:d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1",
+      "metadata": { "category": "support", "score": 19, "outcome": "approved", "issue_number": 212, "submitted_date": "2026-03-26", "semantic_cluster": "education-training" }
+    },
+    {
+      "id": "agentic-cofounder-matching",
+      "text": "AI-powered co-founder matching service for agent startups. Skills assessment, compatibility scoring, equity structure templates, and introductions for technical co-founders.",
+      "embedding": { "method": "deterministic_seed", "seed": 540, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [0.0312, 0.0267, 0.0156, 0.0434, 0.0201, 0.0345, -0.0178, 0.0289, -0.0134, 0.0223],
+      "vector_hash": "sha256:e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+      "metadata": { "category": "cofounder", "score": 16, "outcome": "approved", "issue_number": 213, "submitted_date": "2026-03-11", "semantic_cluster": "startup-cofounder" }
+    },
+    {
+      "id": "agentic-venture-studio",
+      "text": "Venture studio model for incubating agent-native companies. Provides shared infrastructure, go-to-market support, and technical advisorship for early-stage agentic AI ventures.",
+      "embedding": { "method": "deterministic_seed", "seed": 541, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [0.0345, 0.0234, 0.0178, 0.0478, 0.0223, 0.0378, -0.0201, 0.0312, -0.0156, 0.0245],
+      "vector_hash": "sha256:f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
+      "metadata": { "category": "cofounder", "score": 20, "outcome": "approved", "issue_number": 214, "submitted_date": "2026-03-16", "semantic_cluster": "venture-incubation" }
+    },
+    {
+      "id": "agentic-team-builder",
+      "text": "Team assembly platform for agentic AI projects. Matches technical and business co-founders based on project requirements, timezone compatibility, and domain expertise.",
+      "embedding": { "method": "deterministic_seed", "seed": 542, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [0.0278, 0.0301, 0.0134, 0.0401, 0.0178, 0.0312, -0.0156, 0.0267, -0.0112, 0.0201],
+      "vector_hash": "sha256:a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4",
+      "metadata": { "category": "cofounder", "score": 11, "outcome": "declined", "issue_number": 215, "submitted_date": "2026-03-27", "semantic_cluster": "team-formation" }
+    },
+    {
+      "id": "agentic-safety-auditor",
+      "text": "Automated safety auditing tool for AI agent codebases. Scans for prompt injection vulnerabilities, data leakage risks, and unsafe tool usage patterns.",
+      "embedding": { "method": "deterministic_seed", "seed": 550, "dimensions": 384, "norm": "l2_unit" },
+      "vector_preview": [0.0445, -0.0145, 0.0578, 0.1367, -0.0223, -0.0201, 0.0534, -0.0412, 0.0689, -0.0098],
+      "vector_hash": "sha256:b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5",
+      "metadata": { "category": "retraction", "score": 8, "outcome": "retracted", "issue_number": 216, "submitted_date": "2026-03-28", "retracted_date": "2026-04-05", "semantic_cluster": "security-auditing", "security_flags": ["insufficient-test-coverage"] }
+    }
+  ],
+  "similarity_targets": {
+    "note": "Expected pairwise cosine similarities for validation. These targets guide seed selection and vector generation.",
+    "pairs": [
+      {
+        "a": "agentic-policy-engine",
+        "b": "agentic-auto-executor",
+        "expected_cosine": 0.7,
+        "rationale": "Both deal with agent governance and execution control"
+      },
+      {
+        "a": "agentic-policy-engine",
+        "b": "unnamed-multi-agent-system",
+        "expected_cosine": 0.5,
+        "rationale": "Overlapping domain (agent systems) but different focus (governance vs orchestration)"
+      },
+      {
+        "a": "agentic-policy-engine",
+        "b": "agentic-log-visualizer",
+        "expected_cosine": 0.3,
+        "rationale": "Different domains: governance policy vs observability tooling"
+      },
+      {
+        "a": "agentic-log-visualizer",
+        "b": "unnamed-multi-agent-system",
+        "expected_cosine": 0.4,
+        "rationale": "Both relate to multi-agent systems but from different angles (observability vs framework)"
+      },
+      {
+        "a": "agentic-log-visualizer",
+        "b": "agentic-auto-executor",
+        "expected_cosine": 0.25,
+        "rationale": "Least related pair: visualization tooling vs autonomous execution"
+      },
+      {
+        "a": "unnamed-multi-agent-system",
+        "b": "agentic-auto-executor",
+        "expected_cosine": 0.55,
+        "rationale": "Both involve agent execution, but multi-agent is orchestration while auto-executor is autonomous"
+      }
+    ]
+  }
+}

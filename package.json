@@ -1,0 +1,11 @@
+{
+  "name": "community-projects-governance",
+  "private": true,
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "test:state-machine": "node --test test/state-machine.test.js",
+    "test:rvf": "node --test test/rvf.test.js",
+    "test:commands": "node --test test/commands.test.js",
+    "test:all": "node --test test/*.test.js"
+  }
+}

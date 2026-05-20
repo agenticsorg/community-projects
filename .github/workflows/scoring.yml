@@ -1,0 +1,140 @@
+name: Scoring
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+
+jobs:
+  parse-score:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: scoring-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    if: startsWith(github.event.comment.body, '/score ')
+    steps:
+      - name: Parse and post score
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
+        with:
+          script: |
+            // SEC-003: Verify commenter is an org member/collaborator
+            const validAssociations = ['MEMBER', 'OWNER', 'COLLABORATOR'];
+            const association = context.payload.comment.author_association;
+            if (!validAssociations.includes(association)) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `@${context.payload.comment.user.login} Only organization members, owners, or collaborators can perform this action.`
+              });
+              return;
+            }
+
+            // =============================================================
+            // P0-1: Phase Guard -- scoring only allowed in triaged or scoring phase
+            // =============================================================
+            const currentLabels = (await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            })).data.map(l => l.name);
+
+            const allowedPhases = ['status:triaged', 'status:scoring', 'status:pending-review'];
+            if (!currentLabels.some(l => allowedPhases.includes(l))) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: [
+                  `@${context.payload.comment.user.login} Scoring is not allowed in the current phase.`,
+                  '',
+                  `This issue must be in one of: ${allowedPhases.join(', ')}.`,
+                  `Current labels: ${currentLabels.join(', ') || '(none)'}`,
+                  '',
+                  '---',
+                  '*Phase guard: automated safety check.*'
+                ].join('\n')
+              });
+              return;
+            }
+
+            const comment = context.payload.comment.body.trim();
+            const reviewer = context.payload.comment.user.login;
+
+            // Parse /score mission:4 quality:3 clarity:5 impact:4 risk:3
+            const criteria = ['mission', 'quality', 'clarity', 'impact', 'risk'];
+            const scores = {};
+            let valid = true;
+
+            for (const c of criteria) {
+              // Match full integer so values like "10" are rejected by the 0-5 guard
+              // instead of being silently truncated to the first digit.
+              const match = comment.match(new RegExp(`${c}:\\s*(\\d+)`));
+              if (match) {
+                const val = parseInt(match[1], 10);
+                if (val < 0 || val > 5) { valid = false; break; }
+                scores[c] = val;
+              } else {
+                valid = false;
+                break;
+              }
+            }
+
+            if (!valid) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: [
+                  `@${reviewer} -- Could not parse your score. Please use the format:`,
+                  '```',
+                  '/score mission:4 quality:3 clarity:5 impact:4 risk:3',
+                  '```',
+                  'Each score must be 0-5.'
+                ].join('\n')
+              });
+              return;
+            }
+
+            const total = Object.values(scores).reduce((a, b) => a + b, 0);
+
+            let interpretation;
+            if (total >= 21) interpretation = 'Strong candidate for approval or escalation';
+            else if (total >= 16) interpretation = 'Approve or approve with conditions';
+            else if (total >= 11) interpretation = 'Defer or request clarification';
+            else interpretation = 'Decline';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                `### Score from @${reviewer}`,
+                '',
+                '| Criterion | Score |',
+                '|-----------|-------|',
+                `| Mission & Values Alignment | ${scores.mission}/5 |`,
+                `| Project Quality & Maturity | ${scores.quality}/5 |`,
+                `| Clarity of Request | ${scores.clarity}/5 |`,
+                `| Community Impact | ${scores.impact}/5 |`,
+                `| Risk & Governance (inverse) | ${scores.risk}/5 |`,
+                `| **Total** | **${total}/25** |`,
+                '',
+                `**Interpretation:** ${interpretation}`,
+                '',
+                '---',
+                '*Parsed automatically. See [scoring rubric](../blob/main/docs/scoring-template.md) for criteria details.*'
+              ].join('\n')
+            });
+
+            // Apply scoring label if not already present
+            if (!currentLabels.some(l => l === 'status:scoring')) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['status:scoring']
+              });
+            }

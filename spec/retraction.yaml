@@ -1,0 +1,384 @@
+version: "1.0.0"
+gdoc_ref: "charter-section-8, bylaws-article-10.5, decision-flow-step-6"
+gdoc_url: "https://docs.google.com/document/d/1-WCg3ArxhllUpdyk1tJu3bHkQf92tdUm0u80GDM0Vj4/edit"
+gdoc_revision: "2026-04-17"
+
+# =============================================================================
+# AUTHORITY
+# =============================================================================
+authority:
+  gdoc_ref: "retraction-authority"
+  statement: >
+    The Agentics Foundation reserves the right to retract approval of any
+    previously approved project, regardless of category.
+  charter_source: "charter-section-8-retraction"
+  bylaws_source: "bylaws-article-10.5"
+  scope: "Any project that has received approval through the intake process."
+
+# =============================================================================
+# GROUNDS
+# =============================================================================
+grounds:
+  gdoc_ref: "retraction-grounds"
+  open_ended: true
+  open_ended_language: "Grounds include, but are not limited to"
+  open_ended_source: "charter-section-8-retraction"
+
+  items:
+    - id: conduct_violation
+      description: "Violation of the Foundation's code of conduct or values."
+      gdoc_ref: "retraction-ground-1-conduct"
+      charter_text: "Violation of Foundation values or code of conduct"
+      bylaws_text: "Violation of Foundation policies or values"
+      severity: high
+      may_bypass_score: true
+      note: "Conduct issues override technical merit per edge case E."
+
+    - id: misrepresentation
+      description: "Misrepresentation of the project or its licensing."
+      gdoc_ref: "retraction-ground-2-misrepresentation"
+      charter_text: "Misrepresentation of project status or intent"
+      severity: high
+
+    - id: inactive_abandoned
+      description: "Inactive or abandoned maintenance that impacts community trust."
+      gdoc_ref: "retraction-ground-3-inactive"
+      severity: medium
+      note: "Inactivity alone does not equal retraction. Must be combined with community confusion or risk."
+      safeguard: "Committee may request maintainer status update before action."
+
+    - id: legal_ethical_reputational
+      description: "Legal, ethical, or reputational risk to the Foundation."
+      gdoc_ref: "retraction-ground-4-risk"
+      charter_text: "Reputational, legal, or governance risk"
+      bylaws_text: "Risk to the Foundation or its members"
+      severity: high
+
+    - id: membership_lapse
+      description: "Loss of membership standing by the submitting member."
+      gdoc_ref: "retraction-ground-5-membership"
+      charter_text: "Loss of membership standing by the submitter"
+      bylaws_text: "Conduct issues involving project maintainers"
+      severity: medium
+
+  bylaws_grounds:
+    gdoc_ref: "bylaws-article-10.5"
+    note: >
+      The bylaws use slightly different language than the charter. Both are
+      authoritative. The bylaws list four grounds; the charter lists five.
+      The charter's "misrepresentation" ground is not explicitly named in the
+      bylaws but is covered by "Violation of Foundation policies or values."
+    items:
+      - "Violation of Foundation policies or values"
+      - "Licensing or governance changes"
+      - "Risk to the Foundation or its members"
+      - "Conduct issues involving project maintainers"
+
+# =============================================================================
+# PROCESS
+# =============================================================================
+process:
+  gdoc_ref: "retraction-process"
+
+  steps:
+    - id: propose
+      order: 1
+      name: "Propose Retraction"
+      gdoc_ref: "retraction-process-step-1-propose"
+      description: "Any committee member may propose a retraction for review."
+      authority: human_only
+      who: "Any committee member"
+      trigger: "Committee member identifies one or more retraction grounds."
+
+    - id: rescore
+      order: 2
+      name: "Re-Score Using Rubric"
+      gdoc_ref: "retraction-process-step-2-rescore"
+      description: "The committee re-scores the project using the original 0-25 rubric."
+      authority: human_only
+      who: "Committee members"
+      rubric: "Same 5-criterion rubric used in initial review."
+      emphasis_criteria:
+        - criterion: risk_governance
+          gdoc_ref: "retraction-rescore-emphasis-1"
+          note: "Risk & Governance Considerations receive primary emphasis."
+        - criterion: mission_values
+          gdoc_ref: "retraction-rescore-emphasis-2"
+          note: "Mission & Values Alignment re-evaluated against current project state."
+        - criterion: project_quality
+          gdoc_ref: "retraction-rescore-emphasis-3"
+          note: "Ongoing Project Quality & Maintenance assessed for degradation."
+      degradation_rule: "Significant score degradation over time may justify retraction."
+
+    - id: vote
+      order: 3
+      name: "Retraction Vote"
+      gdoc_ref: "retraction-process-step-3-vote"
+      description: "The Open Source Committee votes on retraction during a scheduled meeting."
+      authority: human_only
+      threshold: "simple_majority"
+      threshold_text: "A simple majority (50% + 1) is required to approve retraction."
+      outcome_pass: "Retraction approved. Proceed to execution or escalation."
+      outcome_fail: "Retraction not approved. Project continues under monitoring."
+
+    - id: escalate_if_high_risk
+      order: 3.5
+      name: "Escalate to Senior Leadership (if applicable)"
+      gdoc_ref: "retraction-process-escalation"
+      description: "For high-risk cases, the committee may escalate the retraction decision to senior leadership."
+      authority: human_only
+      condition: "High reputational, legal, or governance risk."
+      note: "Escalation is discretionary, not automatic."
+
+    - id: execute
+      order: 4
+      name: "Execute Retraction"
+      gdoc_ref: "retraction-process-step-4-execute"
+      description: "Retraction actions are carried out."
+      authority: human_only
+      actions: "See retraction_actions below."
+
+    - id: continue_if_failed
+      order: 4
+      name: "Continue Monitoring (if vote fails)"
+      gdoc_ref: "retraction-vote-failed"
+      description: "If the retraction vote fails, the project continues under observation."
+      authority: agent
+      outcome: "Project returns to monitoring state."
+
+# =============================================================================
+# EMPHASIS CRITERIA
+# =============================================================================
+emphasis_criteria:
+  gdoc_ref: "retraction-rescore-emphasis"
+  description: >
+    During retraction re-scoring, the following criteria receive additional
+    weight in committee deliberation. All five criteria are still scored,
+    but these three are the primary focus.
+  primary:
+    - id: risk_governance
+      name: "Risk & Governance Considerations"
+      gdoc_ref: "retraction-rescore-emphasis-risk"
+      rationale: "Retraction is fundamentally a risk management decision."
+    - id: mission_values
+      name: "Mission & Values Alignment"
+      gdoc_ref: "retraction-rescore-emphasis-mission"
+      rationale: "Values drift or misalignment is a core retraction ground."
+    - id: project_quality
+      name: "Ongoing Project Quality & Maintenance"
+      gdoc_ref: "retraction-rescore-emphasis-quality"
+      rationale: "Quality degradation may signal abandonment or neglect."
+  secondary:
+    - id: clarity_of_request
+      name: "Clarity of Request"
+      note: "Less relevant in retraction context since the original request is historical."
+    - id: community_impact
+      name: "Community Impact & Engagement Potential"
+      note: "Evaluated for whether the project is still serving its community purpose."
+
+# =============================================================================
+# ESCALATION (RETRACTION-SPECIFIC)
+# =============================================================================
+escalation:
+  gdoc_ref: "retraction-process-escalation"
+  rule: "For high-risk cases, the committee may escalate the retraction decision to senior leadership."
+  authority: human_only
+  triggers:
+    - "High reputational risk to the Foundation"
+    - "Legal or IP complexity beyond committee expertise"
+    - "Conduct violations with broad community visibility"
+  decision_maker: "Senior leadership or the Board as appropriate."
+  bylaws_text: "Retraction decisions may be made by the Committee or escalated to senior leadership or the Board as appropriate."
+  bylaws_source: "bylaws-article-10.5"
+
+# =============================================================================
+# EDGE CASES (RETRACTION-SPECIFIC)
+# =============================================================================
+edge_cases:
+  abandoned:
+    gdoc_ref: "edge-case-d-abandoned-inactive"
+    rule: "Inactivity alone does not equal retraction."
+    trigger: "Inactivity combined with community confusion or risk."
+    safeguard: "Committee may request maintainer status update before action."
+    process: >
+      Before proposing retraction for an inactive project, the committee
+      should attempt to contact the maintainer and request a status update.
+      Only proceed to retraction review if the maintainer is unresponsive
+      AND inactivity creates community confusion or risk.
+
+  conduct:
+    gdoc_ref: "edge-case-e-behavioral-conduct"
+    rule: "Conduct overrides technical merit."
+    override: "Retraction may proceed even if project is strong."
+    escalation: "Escalate if reputational risk is high."
+    note: >
+      A project with high technical scores may still be retracted if the
+      maintainer's conduct violates Foundation values. Technical merit
+      does not shield against conduct violations.
+
+  conflict_of_interest:
+    gdoc_ref: "edge-case-a-conflict-of-interest"
+    rule: "Same CoI rules apply during retraction as during initial review."
+    process:
+      - "Member with conflict must declare."
+      - "Member must abstain from retraction vote."
+      - "Abstention recorded but does not block quorum."
+
+  competing_projects:
+    gdoc_ref: "edge-case-b-competing-projects"
+    rule: "Retraction of one project does not imply endorsement of a competing project."
+    note: "Avoid language implying one project was retracted to benefit another."
+
+  commercially_adjacent:
+    gdoc_ref: "edge-case-c-commercially-adjacent"
+    rule: "A project changing from OSS to proprietary licensing is grounds for retraction review."
+    note: "License changes that remove open source status directly trigger retraction ground 2 (misrepresentation of licensing)."
+
+# =============================================================================
+# RETRACTION ACTIONS
+# =============================================================================
+retraction_actions:
+  gdoc_ref: "retraction-outcomes"
+  items:
+    - id: remove_from_website
+      action: "Removed from the Foundation website."
+      gdoc_ref: "retraction-action-1-website"
+    - id: withdraw_support
+      action: "Withdrawal of Foundation support or promotion."
+      gdoc_ref: "retraction-action-2-support"
+    - id: terminate_collaboration
+      action: "Termination of any active collaboration facilitated by the Foundation."
+      gdoc_ref: "retraction-action-3-collaboration"
+    - id: notify_submitter
+      action: "Submitter notified with appropriate context."
+      gdoc_ref: "retraction-action-4-notification"
+      communication_source: "communication-of-decisions"
+
+# =============================================================================
+# STATE MACHINE (RETRACTION-SPECIFIC)
+# =============================================================================
+state_machine:
+  gdoc_ref: "decision-flow-retraction-path"
+
+  states:
+    - id: monitoring
+      description: "Approved project under ongoing observation."
+      gdoc_ref: "decision-flow-step-6"
+      authority: agent
+      entry_note: "All approved and approved-with-conditions projects enter this state."
+
+    - id: retraction_proposed
+      description: "A committee member has proposed retraction for review."
+      gdoc_ref: "retraction-process-step-1-propose"
+      authority: human_only
+
+    - id: rescoring
+      description: "Committee is re-scoring the project using the original rubric."
+      gdoc_ref: "retraction-process-step-2-rescore"
+      authority: human_only
+
+    - id: retraction_vote
+      description: "Retraction vote in progress during a scheduled meeting."
+      gdoc_ref: "retraction-process-step-3-vote"
+      authority: human_only
+
+    - id: retraction_escalated
+      description: "Retraction decision escalated to senior leadership."
+      gdoc_ref: "retraction-process-escalation"
+      authority: human_only
+
+    - id: retracted
+      description: "Approval retracted. Retraction actions executed."
+      gdoc_ref: "retraction-outcomes"
+      authority: human_only
+      terminal: true
+
+  transitions:
+    - from: monitoring
+      to: retraction_proposed
+      guard: issue_identified
+      gdoc_ref: "retraction-process-step-1-propose"
+      authority: human_only
+      description: "Committee member identifies retraction grounds and proposes review."
+
+    - from: retraction_proposed
+      to: rescoring
+      guard: retraction_accepted_for_review
+      gdoc_ref: "retraction-process-step-2-rescore"
+      authority: human_only
+      description: "Committee agrees to review. Re-scoring begins with emphasis criteria."
+
+    - from: rescoring
+      to: retraction_vote
+      guard: rescoring_complete
+      gdoc_ref: "retraction-process-step-3-vote"
+      authority: human_only
+      description: "Re-scoring complete. Retraction vote convened at scheduled meeting."
+
+    - from: retraction_vote
+      to: retracted
+      guard: retraction_majority
+      gdoc_ref: "retraction-process-step-3-vote"
+      authority: human_only
+      description: "Simple majority (50% + 1) approves retraction."
+
+    - from: retraction_vote
+      to: monitoring
+      guard: retraction_failed
+      gdoc_ref: "retraction-vote-failed"
+      authority: human_only
+      description: "Retraction vote fails. Project continues under observation."
+
+    - from: retraction_vote
+      to: retraction_escalated
+      guard: high_risk_identified
+      gdoc_ref: "retraction-process-escalation"
+      authority: human_only
+      description: "Committee escalates retraction decision to senior leadership."
+
+    - from: retraction_escalated
+      to: retracted
+      guard: leadership_approves_retraction
+      gdoc_ref: "retraction-process-escalation"
+      authority: human_only
+      description: "Senior leadership approves retraction."
+
+    - from: retraction_escalated
+      to: monitoring
+      guard: leadership_denies_retraction
+      gdoc_ref: "retraction-process-escalation"
+      authority: human_only
+      description: "Senior leadership declines retraction. Project continues."
+
+  guards:
+    - id: issue_identified
+      description: "A committee member has identified one or more retraction grounds."
+      gdoc_ref: "retraction-process-step-1-propose"
+
+    - id: retraction_accepted_for_review
+      description: "Committee acknowledges the proposed retraction and schedules re-scoring."
+      gdoc_ref: "retraction-process-step-2-rescore"
+
+    - id: rescoring_complete
+      description: "Committee members have completed re-scoring using the original rubric with emphasis criteria."
+      gdoc_ref: "retraction-process-step-2-rescore"
+
+    - id: retraction_majority
+      description: "Simple majority (50% + 1) votes to approve retraction."
+      gdoc_ref: "retraction-process-step-3-vote"
+
+    - id: retraction_failed
+      description: "Retraction vote does not reach majority."
+      gdoc_ref: "retraction-process-step-3-vote"
+
+    - id: high_risk_identified
+      description: "Committee determines the retraction involves high reputational, legal, or governance risk."
+      gdoc_ref: "retraction-process-escalation"
+
+    - id: leadership_approves_retraction
+      description: "Senior leadership reviews and approves the retraction."
+      gdoc_ref: "retraction-process-escalation"
+
+    - id: leadership_denies_retraction
+      description: "Senior leadership reviews and declines the retraction."
+      gdoc_ref: "retraction-process-escalation"

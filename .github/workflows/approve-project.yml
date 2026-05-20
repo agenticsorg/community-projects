@@ -1,0 +1,214 @@
+name: Approve Project
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  register-project:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'status:approved' || github.event.label.name == 'status:approved-with-conditions'
+    concurrency:
+      group: registry-update
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+
+      - name: Extract project data and update registry
+        id: extract
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
+        with:
+          script: |
+            const fs = require('fs');
+            const body = context.payload.issue.body || '';
+            const issueNumber = context.payload.issue.number;
+
+            // =============================================================
+            // P0-1: Phase Guard -- verify issue reached this state properly
+            // The status:approved label must have been applied by the
+            // validation-vote workflow (which checks voting outcomes).
+            // We verify the issue also has evidence of the voting phase
+            // (a bot comment with the vote result) to prevent manual
+            // label application bypassing the vote.
+            // =============================================================
+            const labels = (await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            })).data.map(l => l.name);
+
+            // Phase guard: issue must have status:approved or status:approved-with-conditions
+            const approvalLabels = ['status:approved', 'status:approved-with-conditions'];
+            if (!labels.some(l => approvalLabels.includes(l))) {
+              core.warning(`Phase guard: Issue #${issueNumber} does not have an approval label. Aborting.`);
+              return;
+            }
+
+            // Verify a validation vote result comment exists (bot evidence of completed vote)
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            });
+            const hasVoteResult = comments.some(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.includes('Validation Vote') &&
+              c.body.includes('Result:')
+            );
+            if (!hasVoteResult) {
+              core.warning(`Phase guard: Issue #${issueNumber} has no validation vote result. The approval label may have been applied manually, bypassing the voting process. Aborting.`);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: [
+                  '### Registration Blocked',
+                  '',
+                  'This issue has an approval label but no recorded validation vote result.',
+                  'The approval label may have been applied manually, bypassing the required voting process.',
+                  '',
+                  'A validation vote must be completed before a project can be registered.',
+                  '',
+                  '---',
+                  '*Phase guard: automated safety check.*'
+                ].join('\n')
+              });
+              return;
+            }
+
+            // =============================================================
+            // P0-3: Idempotency -- check for duplicate registry entry
+            // =============================================================
+            const registryPath = 'data/approved-projects.json';
+            let registry;
+            try {
+              registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+              if (!Array.isArray(registry)) {
+                throw new Error('Registry must be an array');
+              }
+            } catch (e) {
+              core.setFailed(`Registry validation failed: ${e.message}`);
+              return;
+            }
+
+            // Idempotency: skip if this issue already has a registry entry
+            const existingEntry = registry.find(p => p.issue_number === issueNumber);
+            if (existingEntry) {
+              core.info(`Idempotency: Issue #${issueNumber} already registered as "${existingEntry.id}" (status: ${existingEntry.status}). Skipping.`);
+              return;
+            }
+
+            // SEC-007: Sanitize user input before embedding in registry
+            function sanitize(input, maxLen = 500) {
+              return input
+                .replace(/[[\](){}|`*_~#>!\\]/g, '')
+                .substring(0, maxLen)
+                .trim();
+            }
+
+            // Parse fields from issue form
+            function extract(label) {
+              const re = new RegExp(`### ${label}\\s*\\n\\s*(.+)`, 'i');
+              const m = body.match(re);
+              return m ? m[1].trim() : '';
+            }
+
+            const name = extract('Full Name');
+            const repoUrl = extract('Repository URL');
+            const description = body.match(/### Project Description & Request\s*\n\s*([\s\S]*?)(?=\n###|\n---|\Z)/i);
+            const descText = description ? description[1].trim().split('\n')[0] : '';
+
+            // SEC-007: Validate repo URL format
+            const repoUrlPattern = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/?$/;
+            if (repoUrl && !repoUrlPattern.test(repoUrl)) {
+              core.warning(`Invalid repo URL format: ${repoUrl}`);
+            }
+
+            // Extract category
+            const categoryMap = {
+              'Project Donation': 'donation',
+              'Website Listing': 'website-listing',
+              'Co-Founder Search': 'cofounder',
+              'Problem Support': 'support',
+              'Contributor Engagement': 'contributors'
+            };
+            let category = 'unknown';
+            for (const [text, slug] of Object.entries(categoryMap)) {
+              if (body.includes(text)) { category = slug; break; }
+            }
+
+            // Calculate total score from score comments
+            let totalScore = 0;
+            let scoreCount = 0;
+            for (const c of comments) {
+              const match = c.body.match(/\*\*Total\*\*\s*\|\s*\*\*(\d+)\/25\*\*/);
+              if (match) {
+                totalScore += parseInt(match[1]);
+                scoreCount++;
+              }
+            }
+            const avgScore = scoreCount > 0 ? Math.round(totalScore / scoreCount) : 0;
+
+            // Generate ID from issue number (avoids race condition with registry.length)
+            const id = `proj-${String(issueNumber).padStart(3, '0')}`;
+
+            // Add entry
+            registry.push({
+              id,
+              name: sanitize(descText, 80) || `Submission #${issueNumber}`,
+              repo_url: repoUrl,
+              category,
+              approved_date: new Date().toISOString().split('T')[0],
+              submitter: context.payload.issue.user.login,
+              description: sanitize(descText, 500),
+              total_score: avgScore,
+              issue_number: issueNumber,
+              status: 'active'
+            });
+
+            fs.writeFileSync(registryPath, JSON.stringify(registry, null, 2) + '\n');
+
+            // Set output for commit step
+            core.setOutput('project_id', id);
+            core.setOutput('issue_number', String(issueNumber));
+
+      - name: Commit and push
+        if: steps.extract.outputs.project_id
+        env:
+          PROJECT_ID: ${{ steps.extract.outputs.project_id }}
+          ISSUE_NUMBER: ${{ steps.extract.outputs.issue_number }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/approved-projects.json
+          git commit -m "Add approved project ${PROJECT_ID} from issue #${ISSUE_NUMBER}" || exit 0
+          git pull --rebase origin main
+          git push
+
+      - name: Post confirmation
+        if: steps.extract.outputs.project_id
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
+        env:
+          PROJECT_ID: ${{ steps.extract.outputs.project_id }}
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                '### Project Registered',
+                '',
+                `This project has been added to the [approved projects registry](../blob/main/data/approved-projects.json) as \`${process.env.PROJECT_ID}\`.`,
+                '',
+                'The submitter will be contacted with next steps.',
+                '',
+                '---',
+                '*Automated registration.*'
+              ].join('\n')
+            });

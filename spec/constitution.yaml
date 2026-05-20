@@ -1,0 +1,972 @@
+version: "1.0.0"
+gdoc_url: "https://docs.google.com/document/d/1-WCg3ArxhllUpdyk1tJu3bHkQf92tdUm0u80GDM0Vj4/edit"
+gdoc_revision: "2026-04-17"
+
+# =============================================================================
+# CHARTER (Sections 1-10)
+# =============================================================================
+charter:
+  section_1_establishment:
+    gdoc_ref: "charter-section-1-establishment"
+    text: >
+      The Open Source Committee ("Committee") is a standing committee of the
+      Agentics Foundation ("Foundation"), established by the Board of Directors
+      to oversee the intake, review, governance, and lifecycle management of
+      open source projects submitted by Foundation members.
+
+  section_2_purpose:
+    gdoc_ref: "charter-section-2-purpose"
+    responsibilities:
+      - "Reviewing member-submitted open source projects"
+      - "Evaluating requests for Foundation support, visibility, collaboration, or stewardship"
+      - "Recommending escalation of submissions requiring senior leadership or Board review"
+      - "Maintaining quality, integrity, and alignment across Foundation-supported projects"
+      - "Recommending retraction or removal of previously approved projects when warranted"
+    nature: >
+      The Committee acts as a governance and signal-filtering body, not as an
+      execution or development team.
+
+  section_3_scope_of_authority:
+    gdoc_ref: "charter-section-3-scope-of-authority"
+    can:
+      - id: approve_decline_defer
+        text: "Approve, decline, defer, or recommend support for submissions within its mandate"
+        gdoc_ref: "charter-section-3-can-1"
+      - id: maintain_rubrics
+        text: "Maintain and apply scoring rubrics and review frameworks"
+        gdoc_ref: "charter-section-3-can-2"
+      - id: recommend_listings
+        text: "Recommend project listings, contributor engagement, or community support"
+        gdoc_ref: "charter-section-3-can-3"
+      - id: initiate_retraction
+        text: "Initiate retraction reviews of previously approved projects"
+        gdoc_ref: "charter-section-3-can-4"
+      - id: escalate
+        text: "Escalate submissions or retraction decisions to senior leadership when appropriate"
+        gdoc_ref: "charter-section-3-can-5"
+    cannot:
+      - id: no_ownership
+        text: "Assume ownership or liability for projects"
+        gdoc_ref: "charter-section-3-cannot-1"
+      - id: no_binding
+        text: "Bind the Foundation to legal, financial, or IP obligations"
+        gdoc_ref: "charter-section-3-cannot-2"
+      - id: no_override
+        text: "Override decisions reserved for the Board or senior leadership"
+        gdoc_ref: "charter-section-3-cannot-3"
+
+  section_4_membership:
+    gdoc_ref: "charter-section-4-membership"
+    appointment: "Committee members are appointed by the Board or its delegate."
+    standing: "Members must be active Foundation members in good standing."
+    composition: "The Committee may include technical, governance, and community representatives."
+    chair: "A Chair may be designated to facilitate meetings and agendas."
+
+  section_5_conflicts_of_interest:
+    gdoc_ref: "charter-section-5-conflicts"
+    rules:
+      - "Members must disclose any actual or perceived conflicts of interest."
+      - "Members with conflicts must recuse themselves from discussion and voting."
+      - "Recusals are recorded but do not affect quorum."
+
+  section_6_meetings_quorum:
+    gdoc_ref: "charter-section-6-meetings"
+    cadence: "The Committee meets on a regular cadence as determined internally."
+    quorum: "A quorum consists of a simple majority of active committee members."
+    virtual: "Meetings may be conducted virtually."
+
+  section_7_voting:
+    gdoc_ref: "charter-section-7-voting"
+    threshold: "All formal decisions require a simple majority (50% + 1) of voting members present."
+    votes:
+      - id: escalation_vote
+        text: "Escalation Vote: Determines whether a submission requires senior leadership review."
+        gdoc_ref: "charter-section-7-vote-1"
+      - id: validation_vote
+        text: "Validation Vote: Determines approval, deferral, or rejection when escalation is not required."
+        gdoc_ref: "charter-section-7-vote-2"
+
+  section_8_retraction:
+    gdoc_ref: "charter-section-8-retraction"
+    authority: "The Committee may initiate a retraction review for any previously approved project."
+    grounds:
+      - id: conduct_violation
+        text: "Violation of Foundation values or code of conduct"
+        gdoc_ref: "charter-section-8-ground-1"
+      - id: licensing_ip_change
+        text: "Licensing or IP changes introducing risk"
+        gdoc_ref: "charter-section-8-ground-2"
+      - id: misrepresentation
+        text: "Misrepresentation of project status or intent"
+        gdoc_ref: "charter-section-8-ground-3"
+      - id: reputational_legal_risk
+        text: "Reputational, legal, or governance risk"
+        gdoc_ref: "charter-section-8-ground-4"
+      - id: membership_lapse
+        text: "Loss of membership standing by the submitter"
+        gdoc_ref: "charter-section-8-ground-5"
+    open_ended: true
+    open_ended_language: "Grounds include, but are not limited to"
+    decision: "Retraction decisions require a simple majority and may be escalated when risk is significant."
+
+  section_9_records:
+    gdoc_ref: "charter-section-9-records"
+    rules:
+      - "Decisions are documented internally."
+      - "Scores and deliberations are confidential unless otherwise determined."
+      - "Submitters are notified of outcomes and next steps."
+
+  section_10_amendments:
+    gdoc_ref: "charter-section-10-amendments"
+    text: "This Charter may be amended by the Board of Directors or its authorized delegate."
+
+# =============================================================================
+# BYLAWS (Articles 10.1-10.7)
+# =============================================================================
+bylaws:
+  preamble:
+    gdoc_ref: "bylaws-preamble"
+    text: "This section is written to be inserted directly into the Foundation bylaws."
+    article: "Article X: Open Source Project Governance"
+
+  section_10_1_establishment:
+    gdoc_ref: "bylaws-article-10.1"
+    text: >
+      The Foundation shall maintain a standing Open Source Committee responsible
+      for the intake, review, and governance oversight of open source projects
+      submitted by Foundation members.
+    authority: >
+      The Committee operates under authority delegated by the Board of Directors
+      and in accordance with Foundation policies and values.
+
+  section_10_2_eligibility:
+    gdoc_ref: "bylaws-article-10.2"
+    submitter_requirement: "Only registered members of the Foundation in good standing may submit open source projects for review."
+    project_requirements:
+      - "Be publicly accessible"
+      - "Declare an open source license"
+      - "Align with the Foundation's mission and code of conduct"
+    discretion: "The Foundation reserves the right to decline review of non-compliant submissions."
+
+  section_10_3_categories:
+    gdoc_ref: "bylaws-article-10.3"
+    open_ended: true
+    open_ended_language: "including, but not limited to"
+    purposes:
+      - "Requesting Foundation stewardship or donation"
+      - "Seeking visibility on Foundation platforms"
+      - "Requesting co-founders or contributors"
+      - "Requesting community or technical support"
+    disclaimer: "Submission does not guarantee approval or endorsement."
+
+  section_10_4_review_escalation:
+    gdoc_ref: "bylaws-article-10.4"
+    review: "The Open Source Committee shall review submissions using internally defined criteria."
+    powers:
+      - "Approve, decline, or defer submissions"
+      - "Escalate submissions to senior leadership or the Board when governance, legal, or reputational considerations exist"
+    escalation_threshold: "Escalation requires approval by a simple majority of the Committee."
+
+  section_10_5_retraction:
+    gdoc_ref: "bylaws-article-10.5"
+    authority: "The Foundation retains the right to withdraw approval or support for any project previously approved."
+    grounds:
+      - "Violation of Foundation policies or values"
+      - "Licensing or governance changes"
+      - "Risk to the Foundation or its members"
+      - "Conduct issues involving project maintainers"
+    process: "Retraction decisions may be made by the Committee or escalated to senior leadership or the Board as appropriate."
+
+  section_10_6_limitation_of_responsibility:
+    gdoc_ref: "bylaws-article-10.6"
+    not_constitutes:
+      - id: not_ownership
+        text: "Ownership"
+        gdoc_ref: "bylaws-article-10.6-limitation-1"
+      - id: not_endorsement
+        text: "Endorsement"
+        gdoc_ref: "bylaws-article-10.6-limitation-2"
+      - id: not_liability
+        text: "Assumption of liability"
+        gdoc_ref: "bylaws-article-10.6-limitation-3"
+      - id: not_obligation
+        text: "Legal or financial obligation"
+        gdoc_ref: "bylaws-article-10.6-limitation-4"
+    separate_agreements: "Such obligations may only be assumed through separate, explicit agreements."
+
+  section_10_7_governance_flexibility:
+    gdoc_ref: "bylaws-article-10.7"
+    text: >
+      The Board of Directors may modify, delegate, or revoke authority granted
+      under this Article as necessary to protect the interests of the Foundation.
+
+# =============================================================================
+# ELIGIBILITY
+# =============================================================================
+eligibility:
+  gdoc_ref: "eligibility-and-access-rules"
+  gates:
+    - id: gate_1_membership
+      gdoc_ref: "eligibility-gate-1-membership"
+      name: "Member-Only Access"
+      sequential: true
+      order: 1
+      rules:
+        - "Only registered members of the Agentics Foundation may submit projects through the intake process."
+        - "Submissions from non-members will not be reviewed."
+        - "Membership must be active and in good standing at the time of submission and review."
+      failure: "Declined without review."
+
+    - id: gate_2_project_requirements
+      gdoc_ref: "eligibility-gate-2-project-requirements"
+      name: "Project Requirements"
+      sequential: true
+      order: 2
+      rules:
+        - "Be an open source project hosted in a public repository (e.g. GitHub)"
+        - "Clearly state its license"
+        - "Align with the Foundation's mission, values, and code of conduct"
+        - "Not promote illegal activity, malicious software, or deceptive practices"
+        - "Not infringe on known intellectual property rights"
+      failure: "Declined without review."
+      discretion: "The Foundation reserves the right to decline review of projects that fail to meet these criteria."
+
+    - id: gate_3_submission_completeness
+      gdoc_ref: "eligibility-gate-3-completeness"
+      name: "Submission Completeness"
+      sequential: true
+      order: 3
+      rule: "Incomplete or non-compliant submissions may be declined without review."
+      failure: "Declined without review."
+
+# =============================================================================
+# INTAKE
+# =============================================================================
+intake:
+  gdoc_ref: "submission-process-step-1"
+  method: "Online form on the Agentics Foundation website"
+
+  fields:
+    - id: full_name
+      label: "Full name"
+      required: true
+      gdoc_ref: "intake-field-1-name"
+    - id: email
+      label: "Email address"
+      required: true
+      gdoc_ref: "intake-field-2-email"
+    - id: linkedin
+      label: "LinkedIn profile link"
+      required: true
+      gdoc_ref: "intake-field-3-linkedin"
+    - id: github_profile
+      label: "GitHub profile link"
+      required: true
+      gdoc_ref: "intake-field-4-github-profile"
+    - id: github_repo
+      label: "GitHub repository link"
+      required: true
+      gdoc_ref: "intake-field-5-github-repo"
+    - id: category
+      label: "Submission category"
+      type: "dropdown"
+      multi_select: true
+      required: true
+      gdoc_ref: "intake-field-6-category"
+    - id: description
+      label: "A brief description"
+      max_chars: 500
+      required: true
+      describes:
+        - "The project"
+        - "The specific request being made to the Foundation"
+      gdoc_ref: "intake-field-7-description"
+
+  categories:
+    - id: project_donation
+      name: "Project Donation to the Agentics Foundation"
+      description: "Request to transfer long-term stewardship of the project to the Foundation."
+      gdoc_ref: "category-1-donation"
+    - id: website_listing
+      name: "Foundation Website Listing"
+      description: "Request to have the project featured on the Agentics Foundation website as a community project."
+      gdoc_ref: "category-2-listing"
+    - id: cofounder_search
+      name: "Co-Founder Search"
+      description: "Request to connect with potential co-founders from within the Foundation membership."
+      gdoc_ref: "category-3-cofounder"
+    - id: problem_support
+      name: "Problem Support Request"
+      description: "Request help from Foundation members to overcome a defined technical, architectural, or organizational challenge."
+      gdoc_ref: "category-4-support"
+    - id: contributor_engagement
+      name: "Contributor Engagement"
+      description: "Request to attract contributors, reviewers, or collaborators from the Foundation community."
+      gdoc_ref: "category-5-contributors"
+
+  multi_select: true
+  multi_select_language: "Members may submit an open source project for one or more of the following purposes"
+  gdoc_ref_multi: "intake-multi-select-rule"
+
+  open_ended: true
+  open_ended_language: "including, but not limited to"
+  open_ended_source: "bylaws-article-10.3"
+
+# =============================================================================
+# SCORING
+# =============================================================================
+scoring:
+  gdoc_ref: "internal-scoring-rubric"
+
+  overview:
+    gdoc_ref: "scoring-overview"
+    purpose:
+      - "Evaluate submitted projects consistently"
+      - "Inform validation, escalation, or retraction decisions"
+      - "Maintain quality and alignment across Foundation-supported initiatives"
+    advisory_disclaimer: >
+      The rubric is advisory, not mechanical. Scores guide discussion but do not
+      replace judgment. These ranges are guidance only. The committee may override
+      outcomes with rationale.
+
+  scale:
+    gdoc_ref: "scoring-scale-definition"
+    range: [0, 5]
+    levels:
+      0: "Does not meet minimum expectations"
+      1: "Very weak alignment or quality"
+      2: "Below average, material gaps present"
+      3: "Acceptable / baseline"
+      4: "Strong"
+      5: "Exceptional"
+    total_possible: 25
+
+  criteria:
+    - id: mission_values
+      name: "Mission & Values Alignment"
+      gdoc_ref: "scoring-criterion-1-mission-values"
+      scale: [0, 5]
+      assesses: "How well the project aligns with the Agentics Foundation's mission, principles, and ethical standards."
+      consider:
+        - "Relevance to agentic AI, infrastructure, governance, or ecosystem enablement"
+        - "Alignment with open source values"
+        - "Absence of harmful, deceptive, or exploitative intent"
+      guidance:
+        "0-1": "Misaligned or unclear purpose"
+        "3": "Generally aligned but not core"
+        "5": "Strongly reinforces Foundation mission"
+
+    - id: project_quality
+      name: "Project Quality & Maturity"
+      gdoc_ref: "scoring-criterion-2-project-quality"
+      scale: [0, 5]
+      assesses: "The technical and organizational quality of the project."
+      consider:
+        - "Repository structure and documentation"
+        - "License clarity"
+        - "Evidence of working code or active development"
+        - "Issue tracking and basic hygiene"
+      guidance:
+        "0-1": "Incomplete, poorly documented, or unclear"
+        "3": "Functional and understandable"
+        "5": "Well-structured, production-ready, or exemplary"
+
+    - id: clarity_of_request
+      name: "Clarity of Request"
+      gdoc_ref: "scoring-criterion-3-clarity"
+      scale: [0, 5]
+      assesses: "How clearly the submitter articulated what they want from the Foundation."
+      consider:
+        - "Specificity of the 500-character description"
+        - "Feasibility of the request"
+        - "Alignment between category selected and description"
+      guidance:
+        "0-1": "Vague or confusing"
+        "3": "Clear but limited detail"
+        "5": "Precise, focused, and actionable"
+
+    - id: community_impact
+      name: "Community Impact & Engagement Potential"
+      gdoc_ref: "scoring-criterion-4-community-impact"
+      scale: [0, 5]
+      assesses: "The potential value of the project to the Foundation membership and broader community."
+      consider:
+        - "Opportunity for collaboration or learning"
+        - "Relevance to multiple members"
+        - "Likelihood of attracting contributors or engagement"
+      guidance:
+        "0-1": "Narrow or self-serving"
+        "3": "Useful to a subset of members"
+        "5": "Broad, high-impact community value"
+
+    - id: risk_governance
+      name: "Risk & Governance Considerations"
+      gdoc_ref: "scoring-criterion-5-risk-governance"
+      scale: [0, 5]
+      inverted: true
+      inverted_note: "Lower risk = higher score"
+      assesses: "Potential legal, ethical, operational, or reputational risk."
+      consider:
+        - "IP or licensing ambiguity"
+        - "Security or safety concerns"
+        - "Dependency risks"
+        - "Governance complexity"
+      guidance:
+        "0-1": "High or unclear risk"
+        "3": "Manageable risk"
+        "5": "Minimal or no apparent risk"
+
+  interpretation:
+    gdoc_ref: "score-interpretation-guidelines"
+    advisory_disclaimer: >
+      These ranges are guidance only. The committee may override outcomes with
+      rationale. Rubric is advisory, not mechanical.
+    bands:
+      - range: [21, 25]
+        label: "Strong candidate for approval or escalation"
+        gdoc_ref: "score-band-21-25"
+      - range: [16, 20]
+        label: "Approve or approve with conditions"
+        gdoc_ref: "score-band-16-20"
+      - range: [11, 15]
+        label: "Defer or request clarification"
+        gdoc_ref: "score-band-11-15"
+      - range: [0, 10]
+        label: "Decline"
+        gdoc_ref: "score-band-0-10"
+
+  score_sheet:
+    gdoc_ref: "templated-score-sheet"
+    header_fields:
+      - id: submission_id
+        label: "Submission ID"
+        gdoc_ref: "score-sheet-field-submission-id"
+      - id: project_name
+        label: "Project Name"
+        gdoc_ref: "score-sheet-field-project-name"
+      - id: category
+        label: "Category"
+        gdoc_ref: "score-sheet-field-category"
+      - id: reviewer_name
+        label: "Reviewer Name"
+        gdoc_ref: "score-sheet-field-reviewer-name"
+      - id: date
+        label: "Date"
+        gdoc_ref: "score-sheet-field-date"
+    scoring_rows:
+      - criterion: mission_values
+        columns: ["Score (0-5)", "Notes"]
+      - criterion: project_quality
+        columns: ["Score (0-5)", "Notes"]
+      - criterion: clarity_of_request
+        columns: ["Score (0-5)", "Notes"]
+      - criterion: community_impact
+        columns: ["Score (0-5)", "Notes"]
+      - criterion: risk_governance
+        columns: ["Score (0-5)", "Notes"]
+    total: "Total Score: ___ / 25"
+    flags:
+      gdoc_ref: "score-sheet-flags"
+      instruction: "Check any that apply"
+      items:
+        - id: donation_stewardship
+          label: "Donation / Stewardship implications"
+          gdoc_ref: "score-sheet-flag-1-donation"
+        - id: legal_licensing
+          label: "Legal or licensing concern"
+          gdoc_ref: "score-sheet-flag-2-legal"
+        - id: reputational_risk
+          label: "Reputational risk"
+          gdoc_ref: "score-sheet-flag-3-reputational"
+        - id: security_safety
+          label: "Security or safety concern"
+          gdoc_ref: "score-sheet-flag-4-security"
+        - id: conflict_of_interest
+          label: "Conflict of interest"
+          gdoc_ref: "score-sheet-flag-5-coi"
+    recommendation:
+      gdoc_ref: "score-sheet-recommendation"
+      instruction: "Select one"
+      options:
+        - id: escalate
+          label: "Escalate"
+          gdoc_ref: "score-sheet-rec-escalate"
+        - id: approve
+          label: "Approve"
+          gdoc_ref: "score-sheet-rec-approve"
+        - id: approve_with_conditions
+          label: "Approve with Conditions"
+          gdoc_ref: "score-sheet-rec-approve-conditions"
+        - id: defer
+          label: "Defer"
+          gdoc_ref: "score-sheet-rec-defer"
+        - id: decline
+          label: "Decline"
+          gdoc_ref: "score-sheet-rec-decline"
+        - id: retract
+          label: "Retract (if applicable)"
+          gdoc_ref: "score-sheet-rec-retract"
+    reviewer_notes:
+      gdoc_ref: "score-sheet-reviewer-notes"
+      label: "Reviewer Notes"
+      instruction: "Short rationale"
+
+# =============================================================================
+# ESCALATION
+# =============================================================================
+escalation:
+  gdoc_ref: "escalation-triggers"
+  independent_of_score: true
+  independent_language: "Independent of total score, automatic escalation consideration should occur if"
+
+  triggers:
+    - id: donation_offered
+      text: "The project is offered for donation to the Foundation"
+      gdoc_ref: "escalation-trigger-1-donation"
+    - id: legal_ip_concerns
+      text: "Legal, licensing, or IP concerns are identified"
+      gdoc_ref: "escalation-trigger-2-legal"
+    - id: core_asset
+      text: "The project may become a core Foundation asset"
+      gdoc_ref: "escalation-trigger-3-core-asset"
+    - id: reputational_risk
+      text: "Reputational risk exists despite high overall score"
+      gdoc_ref: "escalation-trigger-4-reputational"
+
+  commonly_expected_for:
+    gdoc_ref: "escalation-common-expectations"
+    items:
+      - "Project donation requests"
+      - "Requests involving governance, legal, or intellectual property considerations"
+      - "Projects that may become core Foundation assets"
+
+  vote:
+    gdoc_ref: "vote-1-escalation"
+    question: "Does this submission require escalation to senior leadership of the Foundation?"
+    decision: "simple_majority"
+    threshold: "50% + 1"
+    quorum: "simple_majority"
+    outcome_yes: "Submission is referred to designated senior leaders for further review and decision."
+    outcome_no: "Proceed to Vote 2 (Validation Decision)."
+
+# =============================================================================
+# VALIDATION
+# =============================================================================
+validation:
+  gdoc_ref: "vote-2-validation"
+  precondition: "If escalation is not required, the committee votes on validation."
+
+  vote:
+    question: "Should this request be approved and supported by the Foundation?"
+    decision: "simple_majority"
+    threshold: "A simple majority determines the outcome."
+    outcomes:
+      - id: approve
+        label: "Approved"
+        description: "The Foundation proceeds with the requested action."
+        gdoc_ref: "validation-outcome-approved"
+      - id: approve_with_conditions
+        label: "Approved with Conditions"
+        description: "Approved with specific requirements to fulfill."
+        gdoc_ref: "validation-outcome-approved-conditions"
+        source_note: "Present in Decision Flow Step 4 and score sheet recommendation options."
+      - id: decline
+        label: "Declined"
+        description: "The request is rejected."
+        gdoc_ref: "validation-outcome-declined"
+      - id: defer
+        label: "Deferred"
+        description: "Additional clarification or information is required."
+        gdoc_ref: "validation-outcome-deferred"
+    tie_behavior: "defer"
+    tie_note: "GDoc does not explicitly specify tie behavior. Defer is the conservative default."
+
+# =============================================================================
+# COMMUNICATION
+# =============================================================================
+communication:
+  gdoc_ref: "communication-of-decisions"
+  method: "email"
+
+  templates:
+    approved:
+      gdoc_ref: "communication-approved"
+      action: "Submitters will be notified of decisions via email."
+      content: "Approved submissions will receive guidance on next steps and engagement."
+    approved_with_conditions:
+      gdoc_ref: "communication-approved-conditions"
+      action: "Notify submitter of approval with specific conditions."
+      content: "Conditions to fulfill before or during engagement."
+    declined:
+      gdoc_ref: "communication-declined"
+      action: "Notify submitter."
+      content: "Communicate with appropriate context."
+    deferred:
+      gdoc_ref: "communication-deferred"
+      action: "Request specific clarification from submitter."
+      content: "Submitter may resubmit with clarifications."
+    retracted:
+      gdoc_ref: "communication-retracted"
+      action: "Retractions and removals will be communicated to the submitter with appropriate context."
+
+# =============================================================================
+# EDGE CASES
+# =============================================================================
+edge_cases:
+  conflict_of_interest:
+    gdoc_ref: "edge-case-a-conflict-of-interest"
+    scenario: "A committee member is: a contributor, a maintainer, a co-founder, or financially or professionally involved."
+    rules:
+      - "Member must declare conflict."
+      - "Member must abstain from voting."
+      - "Abstention is recorded but does not block quorum."
+
+  competing_projects:
+    gdoc_ref: "edge-case-b-competing-projects"
+    scenario: "Two submitted projects overlap in scope or goals."
+    guidance:
+      - "Committee does not choose winners."
+      - "Multiple projects may be approved."
+      - "Avoid language implying endorsement superiority."
+      - "Encourage collaboration where appropriate."
+
+  commercially_adjacent:
+    gdoc_ref: "edge-case-c-commercially-adjacent"
+    scenario: "Open source core with commercial extensions or services."
+    guidance:
+      - "Allowed if OSS license is clear."
+      - "Foundation does not promote paid offerings."
+      - "Website listings must clearly label scope."
+
+  abandoned_inactive:
+    gdoc_ref: "edge-case-d-abandoned-inactive"
+    scenario: "Previously approved project becomes dormant."
+    guidance:
+      - "Inactivity alone does not equal retraction."
+      - "Inactivity combined with community confusion or risk leads to retraction review."
+      - "Committee may request maintainer status update before action."
+
+  conduct_violations:
+    gdoc_ref: "edge-case-e-behavioral-conduct"
+    scenario: "Maintainer violates Foundation code of conduct."
+    guidance:
+      - "Conduct issues override technical merit."
+      - "Retraction may proceed even if project is strong."
+      - "Escalate if reputational risk is high."
+
+# =============================================================================
+# STATE MACHINE
+# =============================================================================
+state_machine:
+  gdoc_ref: "decision-flow-diagram"
+
+  states:
+    - id: submitted
+      description: "Issue created with intake template."
+      gdoc_ref: "decision-flow-step-1"
+      authority: agent
+
+    - id: triaged
+      description: "Agent categorized and posted welcome."
+      gdoc_ref: "decision-flow-step-1"
+      authority: agent
+
+    - id: scoring
+      description: "Committee scoring in progress."
+      gdoc_ref: "decision-flow-step-2"
+      authority: human_only
+
+    - id: escalation_vote
+      description: "Vote 1 (escalation determination) in progress."
+      gdoc_ref: "decision-flow-step-3"
+      authority: human_only
+
+    - id: escalated
+      description: "Referred to senior leadership for review and decision."
+      gdoc_ref: "vote-1-escalation-outcome-yes"
+      authority: human_only
+
+    - id: validation_vote
+      description: "Vote 2 (validation decision) in progress."
+      gdoc_ref: "decision-flow-step-4"
+      authority: human_only
+
+    - id: approved
+      description: "Approved by committee. Foundation proceeds with requested action."
+      gdoc_ref: "validation-outcome-approved"
+      authority: human_only
+
+    - id: approved_with_conditions
+      description: "Approved with specific requirements to fulfill."
+      gdoc_ref: "validation-outcome-approved-conditions"
+      authority: human_only
+
+    - id: declined
+      description: "Request rejected by committee."
+      gdoc_ref: "validation-outcome-declined"
+      authority: human_only
+
+    - id: deferred
+      description: "Additional clarification or information required."
+      gdoc_ref: "validation-outcome-deferred"
+      authority: human_only
+
+    - id: retraction_proposed
+      description: "Retraction review initiated by a committee member."
+      gdoc_ref: "retraction-process-step-1"
+      authority: human_only
+
+    - id: retraction_vote
+      description: "Retraction vote in progress."
+      gdoc_ref: "retraction-process-step-2"
+      authority: human_only
+
+    - id: retracted
+      description: "Approval retracted. Project removed from Foundation support."
+      gdoc_ref: "retraction-outcomes"
+      authority: human_only
+
+    - id: monitoring
+      description: "Approved project under ongoing observation. Subject to retraction rules."
+      gdoc_ref: "decision-flow-step-6"
+      authority: agent
+
+  transitions:
+    - from: submitted
+      to: triaged
+      guard: valid_submission
+      gdoc_ref: "decision-flow-step-1"
+      authority: agent
+      description: "Submission passes eligibility gates. Agent categorizes and posts welcome."
+
+    - from: triaged
+      to: scoring
+      guard: agent_brief_posted
+      gdoc_ref: "decision-flow-step-2"
+      authority: agent
+      description: "Agent prepares committee brief. Scoring begins."
+
+    - from: scoring
+      to: escalation_vote
+      guard: minimum_scores_received
+      gdoc_ref: "decision-flow-step-3"
+      authority: human_only
+      description: "Sufficient scores collected. Escalation vote convened."
+
+    - from: escalation_vote
+      to: escalated
+      guard: escalation_majority
+      gdoc_ref: "vote-1-escalation-outcome-yes"
+      authority: human_only
+      description: "Simple majority votes yes on escalation."
+
+    - from: escalation_vote
+      to: validation_vote
+      guard: no_escalation_majority
+      gdoc_ref: "vote-1-escalation-outcome-no"
+      authority: human_only
+      description: "Escalation not required. Proceed to validation."
+
+    - from: validation_vote
+      to: approved
+      guard: approve_majority
+      gdoc_ref: "validation-outcome-approved"
+      authority: human_only
+      description: "Simple majority votes to approve."
+
+    - from: validation_vote
+      to: approved_with_conditions
+      guard: conditions_majority
+      gdoc_ref: "validation-outcome-approved-conditions"
+      authority: human_only
+      description: "Simple majority votes to approve with conditions."
+
+    - from: validation_vote
+      to: declined
+      guard: decline_majority
+      gdoc_ref: "validation-outcome-declined"
+      authority: human_only
+      description: "Simple majority votes to decline."
+
+    - from: validation_vote
+      to: deferred
+      guard: defer_majority_or_tie
+      gdoc_ref: "validation-outcome-deferred"
+      authority: human_only
+      description: "Simple majority votes to defer, or tie defaults to defer."
+
+    - from: approved
+      to: monitoring
+      guard: approval_recorded
+      gdoc_ref: "decision-flow-step-6"
+      authority: agent
+      description: "Decision recorded. Project enters ongoing observation."
+
+    - from: approved_with_conditions
+      to: monitoring
+      guard: approval_recorded
+      gdoc_ref: "decision-flow-step-6"
+      authority: agent
+      description: "Conditional approval recorded. Project enters ongoing observation."
+
+    - from: approved
+      to: retraction_proposed
+      guard: committee_member_proposes
+      gdoc_ref: "retraction-process-step-1"
+      authority: human_only
+      description: "Any committee member proposes retraction for review."
+
+    - from: monitoring
+      to: retraction_proposed
+      guard: committee_member_proposes
+      gdoc_ref: "retraction-process-step-1"
+      authority: human_only
+      description: "Any committee member proposes retraction for a monitored project."
+
+    - from: retraction_proposed
+      to: retraction_vote
+      guard: rescoring_complete
+      gdoc_ref: "retraction-process-step-2"
+      authority: human_only
+      description: "Re-scoring using original rubric is complete. Vote convened."
+
+    - from: retraction_vote
+      to: retracted
+      guard: retraction_majority
+      gdoc_ref: "retraction-process-step-3"
+      authority: human_only
+      description: "Simple majority (50% + 1) approves retraction."
+
+    - from: retraction_vote
+      to: monitoring
+      guard: retraction_failed
+      gdoc_ref: "retraction-vote-failed"
+      authority: human_only
+      description: "Retraction vote fails. Project continues under observation."
+
+    - from: deferred
+      to: submitted
+      guard: resubmission_received
+      gdoc_ref: "communication-deferred"
+      authority: agent
+      description: "Submitter provides clarification. Re-enters intake."
+
+  guards:
+    - id: valid_submission
+      description: "Submission passes all three eligibility gates: membership, project requirements, completeness."
+      gdoc_ref: "eligibility-and-access-rules"
+
+    - id: agent_brief_posted
+      description: "Agent has categorized submission and posted committee brief."
+      gdoc_ref: "decision-flow-step-2"
+
+    - id: minimum_scores_received
+      description: "Sufficient committee members have submitted independent scores."
+      gdoc_ref: "decision-flow-step-2"
+
+    - id: escalation_majority
+      description: "Simple majority (50% + 1) votes yes on escalation question."
+      gdoc_ref: "vote-1-escalation"
+
+    - id: no_escalation_majority
+      description: "Escalation vote does not reach majority. Proceed to validation."
+      gdoc_ref: "vote-1-escalation"
+
+    - id: approve_majority
+      description: "Simple majority votes to approve."
+      gdoc_ref: "vote-2-validation"
+
+    - id: conditions_majority
+      description: "Simple majority votes to approve with conditions."
+      gdoc_ref: "vote-2-validation"
+
+    - id: decline_majority
+      description: "Simple majority votes to decline."
+      gdoc_ref: "vote-2-validation"
+
+    - id: defer_majority_or_tie
+      description: "Simple majority votes to defer, or vote results in a tie (conservative default)."
+      gdoc_ref: "vote-2-validation"
+
+    - id: committee_member_proposes
+      description: "Any committee member proposes a retraction for review."
+      gdoc_ref: "retraction-process-step-1"
+
+    - id: rescoring_complete
+      description: "Committee has re-scored the project using the original rubric."
+      gdoc_ref: "retraction-process-rescore"
+
+    - id: retraction_majority
+      description: "Simple majority (50% + 1) approves retraction."
+      gdoc_ref: "retraction-process-step-3"
+
+    - id: retraction_failed
+      description: "Retraction vote does not reach majority. Project continues."
+      gdoc_ref: "retraction-process-step-3"
+
+    - id: approval_recorded
+      description: "Approval decision has been recorded and communicated."
+      gdoc_ref: "decision-flow-step-5"
+
+    - id: resubmission_received
+      description: "Submitter has provided clarification and resubmitted."
+      gdoc_ref: "communication-deferred"
+
+# =============================================================================
+# REVIEW AUTHORITY & RECORD KEEPING
+# =============================================================================
+review_authority:
+  gdoc_ref: "review-authority"
+  body: "All submissions are reviewed by the Open Source Committee, a standing committee of the Agentics Foundation."
+  evaluation: "The committee reviews submissions during scheduled meetings and evaluates each request independently."
+
+record_keeping:
+  gdoc_ref: "record-keeping"
+  rules:
+    - text: "Scores should be captured in committee notes or internal tooling."
+      gdoc_ref: "record-keeping-rule-1"
+    - text: "Individual scores need not be disclosed externally."
+      gdoc_ref: "record-keeping-rule-2"
+    - text: "Aggregate scoring trends may be reviewed periodically to improve intake quality."
+      gdoc_ref: "record-keeping-rule-3"
+
+# =============================================================================
+# SCOPE & DISCLAIMERS
+# =============================================================================
+scope_disclaimers:
+  gdoc_ref: "scope-and-disclaimers"
+  statements:
+    - text: "Submission does not guarantee approval, endorsement, or long-term support."
+      gdoc_ref: "scope-disclaimer-1"
+    - text: "The Foundation does not assume ownership, liability, or responsibility for projects unless explicitly agreed through a separate process."
+      gdoc_ref: "scope-disclaimer-2"
+    - text: "All decisions are made in the interest of the Foundation and its membership."
+      gdoc_ref: "scope-disclaimer-3"
+
+# =============================================================================
+# GUIDING PRINCIPLES
+# =============================================================================
+guiding_principles:
+  gdoc_ref: "guiding-principles"
+
+  process_design:
+    gdoc_ref: "guiding-principles-design"
+    values:
+      - "Member-focused"
+      - "Transparent"
+      - "Low-friction"
+      - "Governance-aware"
+      - "Scalable with the community"
+
+  framework_purpose:
+    gdoc_ref: "guiding-principles-purpose"
+    values:
+      - "Protect the Foundation"
+      - "Respect contributors"
+      - "Maintain trust"
+      - "Stay lightweight"
+
+  maxims:
+    - "Judgment > math"
+    - "Transparency > speed"
+    - "Community > optics"
