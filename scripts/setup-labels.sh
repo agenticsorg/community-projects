@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Creates all labels for the community-projects repo.
+# Idempotent — safe to run multiple times (--force overwrites).
+# Usage: ./scripts/setup-labels.sh [owner/repo]
+
+set -euo pipefail
+
+REPO="${1:-agenticsorg/community-projects}"
+
+# SEC-014: Validate repo format
+if [[ ! "$REPO" =~ ^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$ ]]; then
+  echo "Error: Invalid repo format. Expected owner/repo" >&2
+  exit 1
+fi
+
+echo "Setting up labels for ${REPO}..."
+echo "This will create or overwrite labels. Press Ctrl+C within 3 seconds to cancel."
+sleep 3
+
+# Status labels
+gh label create "status:pending-review"       --color "FBCA04" --description "Awaiting committee review" --repo "$REPO" --force
+gh label create "status:triaged"              --color "FEF2C0" --description "Triaged, awaiting scoring" --repo "$REPO" --force
+gh label create "status:scoring"              --color "E68A00" --description "Committee scoring in progress" --repo "$REPO" --force
+gh label create "status:escalation-vote"      --color "7B61FF" --description "Escalation vote in progress" --repo "$REPO" --force
+gh label create "status:validation-vote"      --color "1D76DB" --description "Validation vote in progress" --repo "$REPO" --force
+gh label create "status:approved"             --color "0E8A16" --description "Approved by committee" --repo "$REPO" --force
+gh label create "status:approved-with-conditions" --color "98D7A0" --description "Approved subject to stated conditions" --repo "$REPO" --force
+gh label create "status:declined"             --color "D73A49" --description "Declined by committee" --repo "$REPO" --force
+gh label create "status:deferred"             --color "959DA5" --description "Deferred, more info needed" --repo "$REPO" --force
+gh label create "status:monitoring"           --color "C9DEF5" --description "Approved project under ongoing monitoring" --repo "$REPO" --force
+gh label create "status:retraction-proposed"  --color "F9D0C4" --description "Retraction has been proposed" --repo "$REPO" --force
+gh label create "status:retracted"            --color "86181D" --description "Approval retracted" --repo "$REPO" --force
+gh label create "escalated"                   --color "5319E7" --description "Escalated to senior leadership" --repo "$REPO" --force
+
+# Category labels
+gh label create "category:donation"       --color "BFD4F2" --description "Project Donation" --repo "$REPO" --force
+gh label create "category:website-listing" --color "C5DEF5" --description "Website Listing" --repo "$REPO" --force
+gh label create "category:cofounder"      --color "D4C5F9" --description "Co-Founder Search" --repo "$REPO" --force
+gh label create "category:support"        --color "FEF2C0" --description "Problem Support" --repo "$REPO" --force
+gh label create "category:contributors"   --color "BFDADC" --description "Contributor Engagement" --repo "$REPO" --force
+
+echo "All labels created successfully."

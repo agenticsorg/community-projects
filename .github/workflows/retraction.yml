@@ -1,0 +1,374 @@
+name: Retraction
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  propose-retraction:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: registry-update
+      cancel-in-progress: false
+    if: github.event.comment.body == '/retract'
+    steps:
+      - name: Post retraction proposal
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
+        with:
+          script: |
+            // SEC-003: Verify commenter is an org member/collaborator
+            const validAssociations = ['MEMBER', 'OWNER', 'COLLABORATOR'];
+            const association = context.payload.comment.author_association;
+            if (!validAssociations.includes(association)) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `@${context.payload.comment.user.login} Only organization members, owners, or collaborators can perform this action.`
+              });
+              return;
+            }
+
+            // =============================================================
+            // P0-1: Phase Guard -- retraction can only be proposed for approved/monitoring projects
+            // =============================================================
+            const currentLabels = (await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            })).data.map(l => l.name);
+
+            const allowedPhases = ['status:approved', 'status:approved-with-conditions', 'status:monitoring'];
+            if (!currentLabels.some(l => allowedPhases.includes(l))) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: [
+                  `@${context.payload.comment.user.login} Retraction can only be proposed for approved or monitored projects.`,
+                  '',
+                  `Required phase: ${allowedPhases.join(', ')}.`,
+                  `Current labels: ${currentLabels.join(', ') || '(none)'}`,
+                  '',
+                  '---',
+                  '*Phase guard: automated safety check.*'
+                ].join('\n')
+              });
+              return;
+            }
+
+            const proposer = context.payload.comment.user.login;
+
+            // Apply retraction-proposed label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['status:retraction-proposed']
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                `### Retraction Proposed by @${proposer}`,
+                '',
+                'A committee member has proposed retracting approval of this project.',
+                '',
+                '**Grounds for retraction** (per governance doc):',
+                '- Violation of code of conduct or values',
+                '- Misrepresentation of project or licensing',
+                '- Inactive/abandoned maintenance impacting trust',
+                '- Legal, ethical, or reputational risk',
+                '- Loss of membership standing',
+                '',
+                'Committee members: vote with `/vote retract` to support retraction or `/vote no-retract` to keep.',
+                'A simple majority is required.',
+                '',
+                '**Note:** The original project submitter is excluded from this vote.',
+                '',
+                '---',
+                '*Automated retraction proposal.*'
+              ].join('\n')
+            });
+
+  tally-retraction:
+    runs-on: ubuntu-latest
+    if: |
+      github.event.comment.body == '/vote retract' ||
+      github.event.comment.body == '/vote no-retract'
+    concurrency:
+      group: registry-update
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+
+      - name: Tally retraction votes
+        id: tally
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
+        env:
+          QUORUM: '3'
+        with:
+          script: |
+            const fs = require('fs');
+            let quorum;
+            try {
+              const config = JSON.parse(fs.readFileSync('data/committee-config.json', 'utf8'));
+              quorum = Math.floor(config.members.length / 2) + 1;
+            } catch (e) {
+              quorum = parseInt(process.env.QUORUM);
+            }
+
+            // SEC-003: Verify commenter is an org member/collaborator
+            const validAssociations = ['MEMBER', 'OWNER', 'COLLABORATOR'];
+            const association = context.payload.comment.author_association;
+            if (!validAssociations.includes(association)) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `@${context.payload.comment.user.login} Only organization members, owners, or collaborators can perform this action.`
+              });
+              return;
+            }
+
+            // =============================================================
+            // P0-1: Phase Guard -- retraction vote only allowed when retraction is proposed
+            // =============================================================
+            const currentLabels = (await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            })).data.map(l => l.name);
+
+            const allowedPhases = ['status:retraction-proposed'];
+            if (!currentLabels.some(l => allowedPhases.includes(l))) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: [
+                  `@${context.payload.comment.user.login} Retraction voting is not allowed in the current phase.`,
+                  '',
+                  `A retraction must be proposed first (via \`/retract\`).`,
+                  `Current labels: ${currentLabels.join(', ') || '(none)'}`,
+                  '',
+                  '---',
+                  '*Phase guard: automated safety check.*'
+                ].join('\n')
+              });
+              return;
+            }
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            // =============================================================
+            // P0-2: Submitter Exclusion -- the original submitter cannot vote
+            // on retraction of their own project
+            // =============================================================
+            const issue = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            const submitter = issue.data.user.login;
+
+            // Check if the current voter is the submitter
+            const currentVoter = context.payload.comment.user.login;
+            if (currentVoter === submitter) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: [
+                  `@${currentVoter} You are the original submitter of this project and cannot vote on its retraction.`,
+                  '',
+                  'Per governance rules, the project submitter is excluded from retraction votes to prevent conflicts of interest.',
+                  '',
+                  '---',
+                  '*Submitter exclusion: automated safety check.*'
+                ].join('\n')
+              });
+              // Still tally other votes below, but this voter's vote is excluded
+            }
+
+            // Count unique retraction and no-retract votes (excluding submitter)
+            const retractVoters = new Set();
+            const keepVoters = new Set();
+            for (const c of comments) {
+              if (c.user.type === 'Bot') continue;
+              if (c.user.login === submitter) continue;  // P0-2: Submitter exclusion
+              const body = c.body.trim();
+              if (body === '/vote retract') {
+                retractVoters.add(c.user.login);
+                keepVoters.delete(c.user.login);
+              }
+              if (body === '/vote no-retract') {
+                keepVoters.add(c.user.login);
+                retractVoters.delete(c.user.login);
+              }
+            }
+
+            const retractCount = retractVoters.size;
+            const keepCount = keepVoters.size;
+            const totalVotes = retractCount + keepCount;
+
+            // SEC-008: Rate limit - skip if bot posted a tally within last 5 minutes
+            const recentBotTally = comments.find(c =>
+              c.user.login === 'github-actions[bot]' &&
+              (c.body.includes('Vote Tally') || c.body.includes('Vote --')) &&
+              (Date.now() - new Date(c.created_at).getTime()) < 300000
+            );
+            if (recentBotTally && totalVotes < quorum) {
+              return; // Skip posting duplicate tally
+            }
+
+            if (totalVotes < quorum) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `**Retraction Vote Tally** -- ${totalVotes}/${quorum} votes (quorum not yet reached)\n\n| | Count |\n|---|---|\n| Retract | ${retractCount} |\n| Keep | ${keepCount} |\n\n*Note: The project submitter (@${submitter}) is excluded from this vote.*`
+              });
+              return;
+            }
+
+            // Quorum reached — determine outcome
+            const issueNumber = context.issue.number;
+
+            if (retractCount > keepCount) {
+              // =============================================================
+              // P0-3: Idempotency -- check if already retracted before modifying
+              // =============================================================
+              const registryPath = 'data/approved-projects.json';
+              let registry;
+              try {
+                registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+                if (!Array.isArray(registry)) {
+                  throw new Error('Registry must be an array');
+                }
+              } catch (e) {
+                core.setFailed(`Registry validation failed: ${e.message}`);
+                return;
+              }
+
+              const idx = registry.findIndex(p => p.issue_number === issueNumber);
+              if (idx !== -1) {
+                // Idempotency: only update if not already retracted
+                if (registry[idx].status === 'retracted') {
+                  core.info(`Idempotency: Issue #${issueNumber} is already retracted. Skipping registry update.`);
+                } else {
+                  registry[idx].status = 'retracted';
+                  registry[idx].retracted_date = new Date().toISOString().split('T')[0];
+                  fs.writeFileSync(registryPath, JSON.stringify(registry, null, 2) + '\n');
+                  core.setOutput('updated_registry', 'true');
+                  core.setOutput('issue_number', String(issueNumber));
+                }
+              }
+
+              // Update labels
+              for (const sl of currentLabels.filter(l => l.startsWith('status:'))) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    name: sl
+                  });
+                } catch (e) { /* ok */ }
+              }
+
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: ['status:retracted']
+              });
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: [
+                  '### Retraction Vote -- Result: RETRACTED',
+                  '',
+                  `Votes to retract: ${retractCount} | Votes to keep: ${keepCount} (quorum: ${quorum})`,
+                  `*(Project submitter @${submitter} was excluded from this vote.)*`,
+                  '',
+                  'This project\'s approval has been **retracted**. It has been marked as retracted in the registry.',
+                  '',
+                  'Actions that may follow:',
+                  '- Removal from Foundation website',
+                  '- Withdrawal of support',
+                  '- Termination of active collaboration',
+                  '',
+                  '---',
+                  '*Automated retraction result.*'
+                ].join('\n')
+              });
+
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                state: 'closed',
+                state_reason: 'not_planned'
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: [
+                  '### Retraction Vote -- Result: RETAINED',
+                  '',
+                  `Votes to retract: ${retractCount} | Votes to keep: ${keepCount} (quorum: ${quorum})`,
+                  `*(Project submitter @${submitter} was excluded from this vote.)*`,
+                  '',
+                  'This project\'s approval has been **retained** by the committee.',
+                  '',
+                  '---',
+                  '*Automated retraction vote result.*'
+                ].join('\n')
+              });
+
+              // Remove retraction-proposed label, restore monitoring
+              for (const sl of currentLabels.filter(l => l === 'status:retraction-proposed')) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    name: sl
+                  });
+                } catch (e) { /* ok */ }
+              }
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: ['status:monitoring']
+              });
+            }
+
+      - name: Commit registry update
+        if: steps.tally.outputs.updated_registry == 'true'
+        env:
+          ISSUE_NUMBER: ${{ steps.tally.outputs.issue_number }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/approved-projects.json
+          git commit -m "Retract project from issue #${ISSUE_NUMBER}" || exit 0
+          git pull --rebase origin main
+          git push
