@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-06-04T00:32:20Z",
+  "repo": "agenticsorg/community-projects",
+  "note": "Scores are intentionally omitted pending the committee decision on the score-confidentiality model (issue #27).",
+  "committee": {
+    "name": "Open Source Committee",
+    "quorum_rule": "simple_majority",
+    "members": [
+      {
+        "login": "michaeloboyle",
+        "name": "Michael O'Boyle",
+        "role": "chair"
+      },
+      {
+        "login": "nicholas-ruest",
+        "name": "Nick Ruest",
+        "role": "member"
+      },
+      {
+        "login": "mrjcleaver",
+        "name": "Martin Cleaver",
+        "role": "member"
+      },
+      {
+        "login": "shaal",
+        "name": "Ofer Shaal",
+        "role": "member"
+      },
+      {
+        "login": "inde5media",
+        "name": "Mat Mathews",
+        "role": "member"
+      }
+    ]
+  },
+  "submissions": [],
+  "approved": [],
+  "stats": {
+    "committee_size": 5,
+    "submissions_total": 0,
+    "by_status": {},
+    "approved_total": 0
+  }
+}
