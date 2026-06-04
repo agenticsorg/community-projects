@@ -1,0 +1,60 @@
+name: Dashboard (GitHub Pages)
+
+# Regenerates docs/data/dashboard.json (committee + submissions + approved registry)
+# and publishes docs/ to GitHub Pages.
+#
+# Activation: the first run auto-enables Pages (configure-pages enablement: true),
+# so merging this workflow to the default branch publishes the site. To stage the
+# code without publishing, hold the merge or set enablement: false below.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * *'   # daily refresh
+  push:
+    branches: [main]
+    paths:
+      - 'data/**'
+      - 'docs/**'
+      - 'scripts/build-dashboard.mjs'
+      - '.github/workflows/pages.yml'
+  issues:
+    types: [opened, edited, labeled, unlabeled, closed, reopened]
+
+permissions:
+  contents: read
+  issues: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Build dashboard.json
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/build-dashboard.mjs
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - name: Deploy to Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

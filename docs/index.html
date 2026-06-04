@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agentics Open Source Committee — Dashboard</title>
+<style>
+  :root {
+    --bg: #fbfbf9; --fg: #1c1c1a; --muted: #6b6b66; --line: #e4e4df;
+    --card: #ffffff; --accent: #2f6f4f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 20px 64px; }
+  header h1 { font-size: 22px; margin: 0 0 4px; }
+  header p { color: var(--muted); margin: 0; }
+  .stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0 8px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; min-width: 110px; }
+  .stat .n { font-size: 22px; font-weight: 600; }
+  .stat .l { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 40px 0 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+  .members { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .member { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .member img { width: 40px; height: 40px; border-radius: 50%; background: #eee; }
+  .member .name { font-weight: 600; }
+  .member a { color: var(--muted); text-decoration: none; font-size: 13px; }
+  .member .role { margin-left: auto; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+  td .desc { color: var(--muted); font-size: 13px; }
+  a.proj { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
+  .badge.status-pending-review { background: #fff7e6; border-color: #f0d9a8; }
+  .badge.status-approved { background: #e8f5ee; border-color: #b8dcc6; }
+  .badge.status-rejected { background: #fdecec; border-color: #f2c0c0; }
+  .badge.status-deferred { background: #eef0f5; }
+  .empty { color: var(--muted); background: var(--card); border: 1px dashed var(--line); border-radius: 8px; padding: 24px; text-align: center; }
+  .note { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+  footer { color: var(--muted); font-size: 12px; margin-top: 48px; border-top: 1px solid var(--line); padding-top: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="title">Open Source Committee</h1>
+    <p id="subtitle">Agentics Foundation — project intake dashboard</p>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <h2>Committee Members</h2>
+  <div class="members" id="members"></div>
+
+  <h2>Submissions</h2>
+  <div id="submissions"></div>
+  <p class="note" id="score-note"></p>
+
+  <h2>Approved Projects</h2>
+  <div id="approved"></div>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const fmtDate = (s) => s ? new Date(s).toISOString().slice(0, 10) : '';
+
+function renderStats(d) {
+  const s = d.stats || {};
+  const cells = [
+    ['Members', s.committee_size],
+    ['Submissions', s.submissions_total],
+    ['Approved', s.approved_total],
+  ];
+  document.getElementById('stats').innerHTML = cells.map(
+    ([l, n]) => `<div class="stat"><div class="n">${esc(n ?? 0)}</div><div class="l">${esc(l)}</div></div>`
+  ).join('');
+}
+
+function renderMembers(d) {
+  const m = (d.committee && d.committee.members) || [];
+  document.getElementById('members').innerHTML = m.map((p) => `
+    <div class="member">
+      <img src="https://github.com/${encodeURIComponent(p.login)}.png?size=80" alt="" loading="lazy" />
+      <div>
+        <div class="name">${esc(p.name || p.login)}</div>
+        <a href="https://github.com/${encodeURIComponent(p.login)}" target="_blank" rel="noopener">@${esc(p.login)}</a>
+      </div>
+      <div class="role">${esc(p.role || 'member')}</div>
+    </div>`).join('');
+}
+
+function renderSubmissions(d) {
+  const subs = d.submissions || [];
+  const el = document.getElementById('submissions');
+  if (!subs.length) {
+    el.innerHTML = '<div class="empty">No submissions yet. New project-submission issues will appear here automatically.</div>';
+  } else {
+    el.innerHTML = `<table><thead><tr>
+      <th>Project</th><th>Category</th><th>Status</th><th>Submitter</th><th>Submitted</th>
+    </tr></thead><tbody>${subs.map((s) => `
+      <tr>
+        <td><a class="proj" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a>
+            <div class="desc">${esc(s.description)}</div></td>
+        <td>${s.category ? `<span class="badge">${esc(s.category)}</span>` : '—'}</td>
+        <td><span class="badge status-${esc(s.status)}">${esc(s.status)}</span></td>
+        <td>${s.submitter ? `<a href="https://github.com/${encodeURIComponent(s.submitter)}" target="_blank" rel="noopener">@${esc(s.submitter)}</a>` : '—'}</td>
+        <td>${esc(fmtDate(s.created_at))}</td>
+      </tr>`).join('')}</tbody></table>`;
+  }
+  document.getElementById('score-note').textContent = d.note || '';
+}
+
+function renderApproved(d) {
+  const a = d.approved || [];
+  const el = document.getElementById('approved');
+  if (!a.length) {
+    el.innerHTML = '<div class="empty">No approved projects yet.</div>';
+    return;
+  }
+  el.innerHTML = `<table><thead><tr>
+    <th>Project</th><th>Category</th><th>Approved</th>
+  </tr></thead><tbody>${a.map((p) => `
+    <tr>
+      <td><a class="proj" href="${esc(p.repo_url || p.url || '#')}" target="_blank" rel="noopener">${esc(p.name || p.title || 'project')}</a></td>
+      <td>${p.category ? `<span class="badge">${esc(p.category)}</span>` : '—'}</td>
+      <td>${esc(fmtDate(p.approved_at || p.date))}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+fetch('./data/dashboard.json', { cache: 'no-store' })
+  .then((r) => { if (!r.ok) throw new Error('dashboard.json not found'); return r.json(); })
+  .then((d) => {
+    if (d.committee && d.committee.name) {
+      document.getElementById('title').textContent = d.committee.name;
+    }
+    renderStats(d);
+    renderMembers(d);
+    renderSubmissions(d);
+    renderApproved(d);
+    const when = d.generated_at ? new Date(d.generated_at).toISOString().replace('T', ' ').slice(0, 16) + ' UTC' : 'unknown';
+    document.getElementById('footer').innerHTML =
+      `Generated ${esc(when)} · source <a href="https://github.com/${esc(d.repo || '')}" target="_blank" rel="noopener">${esc(d.repo || '')}</a>`;
+  })
+  .catch((e) => {
+    document.getElementById('submissions').innerHTML =
+      `<div class="empty">Could not load dashboard data (${esc(e.message)}).</div>`;
+  });
+</script>
+</body>
+</html>
