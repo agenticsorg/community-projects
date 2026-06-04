@@ -3,8 +3,9 @@
   "quorum_rule": "simple_majority",
   "members": [
     {"login": "michaeloboyle", "name": "Michael O'Boyle", "role": "chair"},
-    {"login": "ruebot", "name": "Nick Ruest", "role": "member"},
-    {"login": "mrjcleaver2", "name": "Martin Cleaver", "role": "member"},
-    {"login": "ransonrob", "name": "Robert Ranson", "role": "member"}
+    {"login": "nicholas-ruest", "name": "Nick Ruest", "role": "member"},
+    {"login": "mrjcleaver", "name": "Martin Cleaver", "role": "member"},
+    {"login": "shaal", "name": "Ofer Shaal", "role": "member"},
+    {"login": "inde5media", "name": "Mat Mathews", "role": "member"}
   ]
 }
