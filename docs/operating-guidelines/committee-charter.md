@@ -1,3 +1,12 @@
+---
+author: Michael O'Boyle
+author_github: "@michaeloboyle"
+maintainer: Michael O'Boyle
+maintainer_github: "@michaeloboyle"
+status: draft
+target: agenticsorg/community-projects#9
+---
+
 # Agentics Foundation Open Source Committee Charter
 
 > This charter is container #5 (Committee Operating Guidelines) in the
@@ -197,8 +206,9 @@ committee never auto-recuses a non-submitter).
   Submitters are notified of outcomes.
 - **Decision-recording convention.** A decision is recorded as: (a) an **AF-GOV
   document** when it is a durable Foundation-level governance rule; (b) an **ADR**
-  in `docs/ADRs/` when it is an architectural decision about the intake system or
-  committee tooling; (c) a **tracking issue** for everything else (most decisions,
+  (in a `docs/ADRs/` directory, to be created when the first ADR is written) when
+  it is an architectural decision about the intake system or committee tooling;
+  (c) a **tracking issue** for everything else (most decisions,
   per the issues-over-documents principle). When in doubt, open an issue.
 - **Permissions note.** Committee membership is recorded in
   `data/committee-config.json`, independent of GitHub repository access. As of
