@@ -13,7 +13,7 @@
 
 ## Purpose
 
-These principles guide how the Open Source Committee operates day to day. They
+These principles guide how the Open Source Committee operates day-to-day. They
 sit below the Foundation mission and the committee charter, and above the
 mechanical intake process. They are meant to mature into testable definitions
 over time rather than to be a fixed charter.
@@ -43,7 +43,7 @@ over time rather than to be a fixed charter.
    review.
 
 6. **Two-step, simple-majority voting.** Escalation vote, then validation vote;
-   50%+1 of active committee members. Submitters do not vote on their own
+   a simple majority of members voting. Submitters do not vote on their own
    submission or its retraction.
 
 7. **Tiered stewardship.** T1 Foundation-Owned, T2 Foundation-Endorsed (approved
