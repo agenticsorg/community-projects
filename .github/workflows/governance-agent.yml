@@ -64,6 +64,18 @@ jobs:
             const body = context.payload.issue.body || '';
             const submitter = context.payload.issue.user.login;
 
+            // HITL notification: build @mention list of eligible scorers (roster minus submitter)
+            let committeeMention = '';
+            try {
+              const cfg = JSON.parse(fs.readFileSync('data/committee-config.json', 'utf8'));
+              const eligible = cfg.members
+                .map(m => m.login)
+                .filter(login => login !== submitter);
+              if (eligible.length) {
+                committeeMention = eligible.map(l => '@' + l).join(' ');
+              }
+            } catch (e) { /* config missing: fall back to generic prompt */ }
+
             function extract(label) {
               const re = new RegExp(`### ${label}\\s*\\n\\s*(.+)`, 'i');
               const m = body.match(re);
@@ -332,7 +344,9 @@ jobs:
               '',
               '#### Next Steps',
               '',
-              'Committee members: please score this submission using:',
+              committeeMention
+                ? `${committeeMention}: please score this submission using:`
+                : 'Committee members: please score this submission using:',
               '```',
               '/score mission:N quality:N clarity:N impact:N risk:N',
               '```',
