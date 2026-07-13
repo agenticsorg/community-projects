@@ -80,6 +80,7 @@ const dashboard = {
     name: config.committee_name,
     quorum_rule: config.quorum_rule,
     members: config.members,
+    contributors: config.contributors || [],
   },
   submissions,
   approved,

@@ -8,5 +8,8 @@
     {"login": "shaal", "name": "Ofer Shaal", "role": "member"},
     {"login": "inde5media", "name": "Mat Mathews", "role": "member"},
     {"login": "rcraw", "name": "Robert Ranson", "role": "member"}
+  ],
+  "contributors": [
+    {"login": "CraftsMan-Labs", "name": "Rishub C R (Craftsman)", "role": "contributor"}
   ]
 }
