@@ -2,11 +2,40 @@
   "committee_name": "Open Source Committee",
   "quorum_rule": "simple_majority",
   "members": [
-    {"login": "michaeloboyle", "name": "Michael O'Boyle", "role": "chair"},
-    {"login": "nicholas-ruest", "name": "Nick Ruest", "role": "member"},
-    {"login": "mrjcleaver", "name": "Martin Cleaver", "role": "member"},
-    {"login": "shaal", "name": "Ofer Shaal", "role": "member"},
-    {"login": "inde5media", "name": "Mat Mathews", "role": "member"},
-    {"login": "rcraw", "name": "Robert Ranson", "role": "member"}
+    {
+      "login": "michaeloboyle",
+      "name": "Michael O'Boyle",
+      "role": "chair"
+    },
+    {
+      "login": "nicholas-ruest",
+      "name": "Nick Ruest",
+      "role": "member"
+    },
+    {
+      "login": "mrjcleaver",
+      "name": "Martin Cleaver",
+      "role": "member"
+    },
+    {
+      "login": "shaal",
+      "name": "Ofer Shaal",
+      "role": "member"
+    },
+    {
+      "login": "inde5media",
+      "name": "Mat Mathews",
+      "role": "member"
+    },
+    {
+      "login": "rcraw",
+      "name": "Robert Ranson",
+      "role": "member"
+    },
+    {
+      "login": "craftsman",
+      "name": "Ganesh Gunasegaran",
+      "role": "member"
+    }
   ]
 }
