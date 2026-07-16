@@ -125,6 +125,9 @@ const apps=[
  ["agenticsorg/lean-agentic","Lean4 formal-verification agents",[0,0,0,0,1,0,0,1,2,0],[["auditability","aud"],["provenance","prov"]],
    {4:"formal methods over model behaviour",7:"agent execution",8:"verifiable judgment via Lean4 proof — the strongest form"},
    "Reaches L8 through formal proof — the most rigorous auditability in the set. Structurally rare and strategically interesting.","app"],
+ ["RobLe3/iicp.network","intent-routed inference mesh (IICP protocol)",[0,0,2,1,0,2,0,1,0,1],[["sovereignty","sov"],["identity","sov"],["security","sec"]],
+   {2:"decentralized mesh — operators self-host node compute, no central provider",3:"directory + intent registry (.well-known/iicp-intents.json) scores and returns capable nodes",5:"routes tasks to capable nodes by intent URN — discovery + server-side scoring is its core function",7:"sits beneath orchestration (A2A/ACP); discovery + score + circuit-breaker dispatch, complementary to MCP",9:"client SDKs (pip/npm/cargo) + node dashboard + mesh browser"},
+   "First external applicant in the set (not a ruvnet/agenticsorg repo). Directory + public client SDK connect today; the live mesh (probed 2026-06-05) was 3 sub-1B models on one host, all unreachable to third parties (relay_capable:false) — intent routing works on paper, task delivery does not yet. The credits economy is now live in /stats.","app"],
  ["agenticsorg/community-projects","the committee's intake harness",[0,0,0,1,0,0,0,2,0,1],[["auditability","aud"]],
    {3:"approved-projects registry",7:"RFC-001 governance agent + intake state machine",9:"Pages committee dashboard"},
    "The committee's own harness — an instance of the metaharness pattern applied to governance, not an intelligence application. This is the thing that RUNS the funnel.","infra"],
@@ -145,6 +148,7 @@ const EVID={
  "ruvnet/metaharness":{t:"code",n:"packages/ confirms it: darwin-mode (safe learning, L8), host-* adapters + harness (L7), evals-* (L4). Code backs the placement."},
  "agenticsorg/community-projects":{t:"code",n:"lib/ inspected directly this session: state-machine.js + workflow-guards.js confirm the L7 governance placement."},
  "agenticsorg/lean-agentic":{t:"warn",n:"CODE CONTRADICTS DESCRIPTION: the repo is ~1.2MB of Rust with a single src/ dir, not a Lean4 proof system. The L8 formal-verification placement is description-tier and likely overstated pending real code."},
+ "RobLe3/iicp.network":{t:"desc",n:"Classified from the published IICP spec v1.5 (iicp.network/spec) + a live directory/mesh probe on 2026-06-05 — richer than a bare README, but not a source audit. The mesh repo (RobLe3/iicp.network) is invite-only; the client SDK repos (iicp-client-python/-typescript/-rust) are public. A client-side rescan will 404 on the private mesh repo — expected, and itself a governance signal (fails the openness gate)."},
 };
 function evOf(name){return EVID[name]||{t:"desc",n:"Classified from the repo description/README only. Not yet verified against code."};}
 const EVLBL={code:"code ✓",warn:"desc ⚠",desc:"desc",auto:"auto ⟳"};
@@ -164,6 +168,7 @@ const GAPS={
  "agenticsorg/agentics-wiki":["Not an intelligence application. If it is meant to become one, define which OIA layer it targets; otherwise it stays content at L6/L9."],
  "agenticsorg/agentics.org-website2026":["Not an intelligence application, a website at L9. No OIA remediation applies unless it hosts an agent surface."],
  "agenticsorg/agenticsorg":["Out of scope, the org profile README. No OIA remediation applies."],
+ "RobLe3/iicp.network":["Reachability is the critical gap: discovered nodes advertise score 0.91 but time out to third parties (relay_capable:false). Ship a working relay / port-forward path so a discovered node is actually connectable — discovery that returns unreachable nodes routes to nothing.","Real supply: the mesh was 3 sub-1B toy models on one host. The now-live credit schedule should pull operators; success is mesh_health leaving 'impaired' with >1B models across independent hosts.","Identity (its rare-but-shallow span): Phase 3 W3C DID is specified but Phase 1 ships only bearer node_token. Land DID-based node identity so routing is attributable, not just authenticated.","Openness / qualification gate: the mesh repo is invite-only, which fails the committee's public-repo + issue-tracker requirement. Open a public reference/spec repo with issue tracker + ADRs.","Substantiate the stack claim: the A2A and ACP bindings are scoped but unimplemented (#202). Implement them so 'sits between orchestration and transport' is code-true, not doc-true."],
 };
 function appByName(n){return apps.find(a=>a[0]===n);}
 function genPrompt(name){
