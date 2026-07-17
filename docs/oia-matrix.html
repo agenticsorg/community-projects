@@ -1,0 +1,273 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OIA Application Matrix</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fefbf6;--card:#ffffff;--card2:#fbf6ee;--line:#e3e1de;--tx:#1f1f1f;--mut:#736e64;--o:#e25c3d;--o2:#ffe8e0;--brand-dark:#c24a2f;--radius:16px}
+
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.55 "IBM Plex Mono",ui-monospace,Menlo,monospace;padding:26px 22px 70px;max-width:1180px;margin:auto}
+h1,h2{font-family:"Barlow Condensed","Arial Narrow",sans-serif;text-transform:uppercase;font-weight:700;letter-spacing:.01em}h1{font-size:34px;margin:0 0 4px;padding-bottom:14px;border-bottom:3px solid var(--o)}h2{font-size:20px;margin:26px 0 10px}
+.sub{color:var(--mut);margin-bottom:6px;max-width:900px}
+.key{display:flex;gap:8px 18px;flex-wrap:wrap;margin:12px 0;font-size:12.5px;color:var(--mut)}
+.key b{color:var(--tx)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 16px;font-size:13px;color:var(--mut);align-items:center}
+.sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;min-width:820px;width:100%}
+th,td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--line)}
+th{font-size:13px;color:var(--tx);font-weight:750;position:sticky;top:0;background:var(--card)}
+th.state{color:var(--o)}
+td.app{text-align:left;font-weight:650;white-space:nowrap;position:sticky;left:0;background:var(--card);border-right:1px solid var(--line);cursor:pointer}
+td.app:hover{background:var(--card2)}td.app small{display:block;color:var(--mut);font-weight:400;font-size:11px}
+tr.sel td.app{box-shadow:inset 3px 0 0 var(--o)}
+.cell{width:32px;height:32px;border-radius:6px;margin:auto;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer}
+.c2{background:var(--o);color:#fff}
+tr.grp td{text-align:left;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);background:var(--card2);padding:7px 10px}
+tr.infra td.app{opacity:.82}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:6px;vertical-align:1px;letter-spacing:.02em}
+.badge.code{background:rgba(55,214,122,.18);color:#37d67a}
+.badge.desc{background:var(--card2);color:var(--mut)}
+.badge.warn{background:rgba(229,72,77,.16);color:#e5484d}
+.badge.auto{background:rgba(62,155,255,.16);color:#3e9bff}.c1{background:var(--o2);color:var(--brand-dark)}.c0{background:transparent;cursor:default}
+td.spans{text-align:left;font-size:12px;white-space:nowrap}
+.pill{display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1px 8px;margin:1px 2px;font-size:11px}
+.pill.sec{border-color:#e5484d;color:#e5484d}.pill.prov{border-color:var(--o);color:var(--o)}.pill.sov{border-color:#3e9bff;color:#3e9bff}.pill.aud{border-color:#37d67a;color:#37d67a}.pill.ene{border-color:#ffcf5c;color:#b98900}
+#drill{margin-top:16px;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:0}
+#drill .empty{padding:18px;color:var(--mut);font-size:14px}
+#drill .hd{padding:15px 18px;border-bottom:1px solid var(--line)}
+#drill .hd b{font-size:17px}#drill .hd small{color:var(--mut)}
+#drill .bd{padding:15px 18px;display:grid;gap:12px}
+tr.detail td{background:var(--card2);border-left:3px solid var(--o);padding:14px 16px 16px}
+tr.detail .bd{display:grid;gap:10px}
+.layline{display:flex;gap:10px;align-items:baseline;font-size:14px}
+.layline .tag{flex:0 0 84px;font-weight:700;font-size:12px}
+.tag.cog{color:var(--o)}.tag.pres{color:var(--mut)}
+.mrow{color:var(--mut);font-size:13.5px}.mrow b{color:var(--tx)}
+details{border:1px solid var(--line);border-radius:12px;background:var(--card);margin-top:14px;padding:0}
+summary{padding:14px 18px;font-weight:700;cursor:pointer;font-size:15px}
+details[open] summary{border-bottom:1px solid var(--line)}
+.dc{padding:6px 18px 18px}.dc h3{font-size:14px;margin:16px 0 6px;color:var(--o)}
+.dc p,.dc li{color:var(--mut);font-size:13.5px}.dc b{color:var(--tx)}
+.dc table{min-width:0;font-size:13px;margin:8px 0}.dc td,.dc th{text-align:left;padding:6px 10px;border:1px solid var(--line)}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}.acts button{background:var(--o);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:13.5px;font-weight:650;cursor:pointer}.acts button.ghost{background:var(--card2);color:var(--tx);border:1px solid var(--line)}#pt{width:100%;min-height:230px;margin-top:10px;background:var(--card2);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:12px;font:12.5px/1.5 ui-monospace,Menlo,monospace;resize:vertical}#promptbox button{margin-top:8px;background:var(--card2);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px}.warn{border-left:3px solid var(--o);background:var(--card2);padding:10px 14px;border-radius:8px;color:var(--mut);font-size:13.5px}
+</style></head><body>
+<div style="margin-bottom:12px"><a href="./" style="color:var(--mut);text-decoration:none;font-size:13px">← Agentics Open Source Committee · Dashboard</a></div>
+<div style="background:var(--o2);border:1px solid var(--o);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;color:var(--brand-dark);font-size:13px"><b>v0 draft — a strawman for committee review, not a measurement.</b> Most placements are classified from repo descriptions (see the per-row evidence tier); some are unverified and may be wrong. This is a working tool to structure the OIA intake discussion, not an official Foundation ranking of any project.</div>
+<h1>OIA Application Matrix <span style="font-size:14px;color:var(--mut);font-weight:400">· v0 · 2026-07-15</span></h1>
+<div class="sub">Where each application sits in the Open Intelligence Architecture stack. Click any application, or any filled cell, to drill down into the rationale, generate a gap-closing improvement prompt, and retest.</div>
+<div class="key" id="key"></div>
+<div class="legend">
+  <span><span class="sw" style="background:var(--o)"></span>● centre of gravity</span>
+  <span><span class="sw" style="background:var(--o2)"></span>· meaningful presence</span>
+  <span><b class="state" style="color:var(--o)">L3 · L8</b> = state-holding layers</span>
+  <span><span class="badge code">code ✓</span> verified in code &nbsp; <span class="badge desc">desc</span> description only &nbsp; <span class="badge warn">desc ⚠</span> code differs</span>
+</div>
+<div class="wrap"><table id="t"><thead><tr id="head"></tr></thead><tbody id="body"></tbody></table></div>
+
+<p style="color:var(--mut);font-size:13px;margin:10px 2px">Click any row to expand its rationale, gap prompt, and rescan inline. Click again to collapse.</p>
+
+<details><summary>Methodology &amp; limitations — how these placements were made</summary>
+<div class="dc">
+<h3>Two lenses</h3>
+<p><b>OIA (structural)</b> answers <i>where</i> an app sits: 10 layers (L0 physical compute → L9 human interface) and 6 cross-layer spans (security, sovereignty, auditability, energy, identity, provenance). <b>metaharness (operational)</b> answers <i>how well</i> it runs: its <code>score &lt;repo&gt;</code> command reads a repo without executing it and rates harness-fit, build-likelihood, tool-safety, and cost-per-run.</p>
+<h3>What the cell values mean</h3>
+<table><tr><th>Value</th><th>Meaning</th></tr>
+<tr><td>● (2)</td><td><b>Centre of gravity</b> — a primary layer the app is fundamentally about.</td></tr>
+<tr><td>· (1)</td><td><b>Meaningful presence</b> — the app touches this layer but it is not its core.</td></tr>
+<tr><td>blank (0)</td><td>Not addressed.</td></tr></table>
+<h3>Scoring vocabulary carried from OIA</h3>
+<p>OIA's own Reader rates each layer <b>COHERENT / GAP / NOT YET / N/A</b> and flags <b>vertical extension</b> when one thing spans many layers. This matrix uses the footprint (● / ·) as a first pass; per-layer COHERENT/GAP maturity is a later refinement once a rubric exists.</p>
+<h3>The 12 evaluation dimensions</h3>
+<p><b>Structural:</b> layer footprint · centre of gravity · vertical extension · novel-layer (L8) engagement · span coherence · layer maturity. <b>Operational:</b> harness-fit · build-likelihood · tool-safety · cost-per-run. <b>Governance:</b> openness / vendor-neutrality · qualification gate (issue tracker + docs + infographic/PRD/ADRs).</p>
+<h3>Evidence tier — description vs code</h3>
+<p>Every placement carries an <b>evidence indicator</b>. <span class="badge desc">desc</span> means it was classified from the repo's description/README only (the default, and most of this v0). <span class="badge code">code ✓</span> means the placement was checked against the actual source. <span class="badge warn">desc ⚠</span> means a code check <b>contradicted</b> the description.</p>
+<p><b>Worked example of why this matters:</b> <code>lean-agentic</code>'s description ("Lean4 formal verification") drove an L8 "strongest auditability" placement. A code check found a ~1.2MB Rust repo with a single <code>src/</code> dir — no Lean4 proof system. The description oversold the layer. Without the indicator, that overstatement would sit in the matrix as fact. This is the same conformance-vs-performance discipline the committee applies elsewhere: a claim is not verified until checked at its source.</p>
+<h3>Limitations — read before citing</h3>
+<div class="warn">
+<b>This is v0, classified from repo descriptions and READMEs, not code audits.</b> Author = classifier, so it is a <b>strawman for committee red-lining, not a measurement</b>. Layer assignments are judgment calls at the margins (is metaharness's router L5 or L7). No composite score is offered on purpose: weighting the 12 dimensions is a committee decision, and one number would launder the judgment the committee exists to make. "Vertical extension" is descriptive, not a penalty. <b>Cheapest next step:</b> a second member independently re-tags, and a 1-page rubric with anchor examples per layer makes the tagging reproducible.
+</div>
+<h3>Sources</h3>
+<p>agenticsorg/OIA-Model <code>docs/OIA-Model-v0.1-Digest.md</code> · ruvnet/metaharness README + <code>score</code> · repo list generated 2026-07-15.</p>
+</div></details>
+
+<script>
+const layers=[["L0","Physical Compute"],["L1","Silicon Abstraction"],["L2","Sovereign Infrastructure"],["L3","Agent Data Substrate"],["L4","Model Training & Adaptation"],["L5","Inference & Retrieval"],["L6","Context & Knowledge"],["L7","Orchestration & Workflow"],["L8","Continuity Fabric"],["L9","Human & Browser Interface"]];
+const STATE={3:1,8:1};
+// [name, desc, [L0..L9 values], [[span,cls]...], whyByLayerIndex{}, opsNote]
+const apps=[
+ ["ruvnet/metaharness","factory for agent frameworks",[0,1,1,1,2,1,1,2,2,1],[["provenance","prov"],["auditability","aud"],["security","sec"]],
+   {4:"Weight-EFT LoRA-tunes the cheap tier",5:"cost router picks cheapest model that clears the bar",7:"mints local MCP servers + governance policy",8:"scoped memory, witness-signed provenance, Darwin safe self-learning",1:"RVM hardware-isolated sandbox",9:"npx CLI per repo"},
+   "Ships its own score command (fit/build/safety/cost) — the natural mechanical scoring engine for the funnel. Widest vertical extension (L4-L9); by OIA Decision 10 that is both its power and the concentration to watch.","app"],
+ ["ruvnet/ruflo","multi-agent swarm meta-harness",[0,0,0,1,0,1,0,2,1,1],[["auditability","aud"]],
+   {7:"coordinates multi-player agent swarms — pure orchestration",8:"shared swarm memory (light)",9:"CLI surface"},
+   "The 'leading agent meta-harness' per its own description; overlaps metaharness at L7 — a pick-winners candidate.","app"],
+ ["ruvnet/helix","local-first health intelligence",[0,0,1,1,0,1,2,1,2,2],[["sovereignty","sov"],["auditability","aud"]],
+   {2:"local-first = runs under the user's own control",6:"health-knowledge grounding",8:"anti-hallucination = verifiable judgment",9:"patient-facing interface"},
+   "One of only three apps that genuinely reach L8, via anti-hallucination/verifiability. Local-first gives it the strongest sovereignty posture in the set.","app"],
+ ["ruvnet/ruv-neural","edge gamma-entrainment OS",[2,2,1,0,1,0,0,1,0,0],[["energy","ene"],["sovereignty","sov"]],
+   {0:"physical edge compute for entrainment",1:"Rust/WASM portable runtime",4:"research-loop adaptation"},
+   "The only app anchored in the low layers (L0-L1). Edge/energy focus makes it structurally unlike the orchestration cluster.","app"],
+ ["ruvnet/hackerone","defender-side triage harness",[0,0,0,1,0,1,1,2,0,1],[["security","sec"],["auditability","aud"]],
+   {6:"dedupe against known reports",7:"triage + CVSS scoring workflow",9:"analyst-facing"},
+   "Security is its entire purpose (defender-side triage), so it anchors the security span even though it sits structurally at L7.","app"],
+ ["ruvnet/rupixel","visual RAG on RuVector ANN",[0,1,0,2,0,1,2,0,0,0],[["perf","ene"]],
+   {1:"Rust port for speed",3:"RuVector ANN substrate (HNSW + IVF-Flat)",6:"pixel-native visual retrieval"},
+   "A substrate/retrieval play (L3+L6). Performance-oriented; no strong governance span, which is itself a datapoint.","app"],
+ ["ruvnet/ruvn","cited research dossier harness",[0,0,0,1,0,1,2,2,1,1],[["provenance","prov"],["auditability","aud"]],
+   {6:"assembles knowledge into a dossier",7:"orchestrates the research loop",8:"carries evidence across steps"},
+   "'Cited' = strong provenance; 'graded' = auditability. A clean example of an L6-L7 app that earns its spans through its output contract.","app"],
+ ["ruvnet/llamastack","UI for Llama Stack agents",[0,0,0,0,0,1,1,1,0,2],[["identity","sov"]],
+   {5:"front-ends inference",7:"exposes agent actions",9:"the UI itself is the product"},
+   "Interface-layer app. Rare identity touch (user-facing auth), which stands out given identity is the set's weakest span.","app"],
+ ["agenticsorg/edge-agents","serverless agents",[0,1,2,0,0,1,0,2,0,1],[["sovereignty","sov"],["security","sec"]],
+   {1:"runtime portability",2:"serverless = sovereign infra placement",7:"agent orchestration"},
+   "L2+L7. Where compute runs is its defining choice, giving it a sovereignty posture the pure-orchestration apps lack.","app"],
+ ["agenticsorg/lean-agentic","Lean4 formal-verification agents",[0,0,0,0,1,0,0,1,2,0],[["auditability","aud"],["provenance","prov"]],
+   {4:"formal methods over model behaviour",7:"agent execution",8:"verifiable judgment via Lean4 proof — the strongest form"},
+   "Reaches L8 through formal proof — the most rigorous auditability in the set. Structurally rare and strategically interesting.","app"],
+ ["proffesor-for-testing/agentic-qe","QE fleet harness",[0,0,0,1,0,1,1,2,1,1],[["security","sec"],["auditability","aud"]],
+   {3:"ReasoningBank persistent knowledge graph stores learned test patterns",5:"TinyDancer router matches task complexity to the cheapest model tier",6:"coverage intelligence + cross-project pattern reuse as knowledge",7:"60+ QE agents under a Queen Coordinator; MCP across 11 agent platforms",8:"ReasoningBank learns patterns across sessions/projects — improves over time",9:"CLI + integration surface into coding agents"},
+   "The QE-specialised sibling of metaharness: a fleet harness whose product is quality (test-gen, coverage, flaky detection, quality gates). Anchors auditability through its verify-the-code purpose and carries security via SAST/DAST. First external submission in the set (Dragan Spiridonov, Serbian Agentics Foundation; homepage agentic-qe.dev, npm agentic-qe).","app"],
+ ["ohdearquant/lionagi","governed multi-agent orchestration",[0,0,0,0,0,1,0,2,1,1],[["auditability","aud"],["security","sec"]],
+   {5:"multi-provider routing — API + subprocess providers (Claude Code, Codex, DeepSeek) in one orchestration graph",7:"governed multi-agent DAG flows, parallel fan-outs, Session coordination — the core",8:"durable run persistence (~/.lionagi/runs) with resume/reattach; typed, inspectable Branch state",9:"CLI-first (li agent / li o flow) + Lion Studio web dashboard"},
+   "'You own the loop': governed orchestration with typed, inspectable state, per-tool permission policies, guard hooks and git-worktree sandboxing — hence the auditability + security spans. A mature framework (PyPI, 233+ releases, ~400 stars). Its durable-persistence + resume gives a genuine L8 continuity touch alongside the L7 centre. External submission (Ocean / Haiyang Li).","app"],
+ ["agenticsorg/community-projects","the committee's intake harness",[0,0,0,1,0,0,0,2,0,1],[["auditability","aud"]],
+   {3:"approved-projects registry",7:"RFC-001 governance agent + intake state machine",9:"Pages committee dashboard"},
+   "The committee's own harness — an instance of the metaharness pattern applied to governance, not an intelligence application. This is the thing that RUNS the funnel.","infra"],
+ ["agenticsorg/OIA-Model","the OIA spec reader",[0,0,0,1,0,0,0,0,0,2],[["meta",""]],
+   {3:"SQLite feedback DB",9:"the interactive reader UI"},
+   "Not an OIA application — it is the spec's own reading surface. The reference point the whole matrix is measured against.","infra"],
+ ["agenticsorg/agentics-wiki","community wiki",[0,0,0,0,0,0,1,0,0,2],[["content",""]],
+   {6:"community knowledge base",9:"wiki reading surface"},
+   "Content repo. The OIA lens correctly shows it barely touches the stack (L6/L9) — it is documentation, not an agentic system.","infra"],
+ ["agenticsorg/agentics.org-website2026","the public website",[0,0,0,0,0,0,0,0,0,2],[["content",""]],
+   {9:"public marketing website"},
+   "Pure interface — a website. Only L9. Exactly what the lens should show for a non-intelligence repo, and a useful negative example.","infra"],
+ ["agenticsorg/agenticsorg","the org .github profile",[0,0,0,0,0,0,0,0,0,1],[["non-app",""]],
+   {9:"org profile README"},
+   "Not an application at all — the organisation's profile README. Included for completeness; the OIA lens flags it as out of scope.","infra"],
+];
+const EVID={
+ "ruvnet/metaharness":{t:"code",n:"packages/ confirms it: darwin-mode (safe learning, L8), host-* adapters + harness (L7), evals-* (L4). Code backs the placement."},
+ "agenticsorg/community-projects":{t:"code",n:"lib/ inspected directly this session: state-machine.js + workflow-guards.js confirm the L7 governance placement."},
+ "agenticsorg/lean-agentic":{t:"warn",n:"CODE CONTRADICTS DESCRIPTION: the repo is ~1.2MB of Rust with a single src/ dir, not a Lean4 proof system. The L8 formal-verification placement is description-tier and likely overstated pending real code."},
+};
+function evOf(name){return EVID[name]||{t:"desc",n:"Classified from the repo description/README only. Not yet verified against code."};}
+const EVLBL={code:"code ✓",warn:"desc ⚠",desc:"desc",auto:"auto ⟳"};
+const GAPS={
+ "ruvnet/metaharness":["Bind identity into the witness chain (identity is the weakest span in the whole set) so provenance is attributable, not just present.","Push memory sovereignty down to L2/L3: let the scoped memory namespace run under the user's own infrastructure, not only local disk.","Publish the L8 continuity-fabric interface as an open spec so other harnesses can interoperate."],
+ "ruvnet/ruflo":["Add L8 continuity: promote the light swarm memory into persistent, audited cross-session memory.","Emit a provenance trail of which agent took which action on what authority.","Move from desc to code-verified with tests that exercise the coordination."],
+ "ruvnet/helix":["Add provenance/citation to every health claim (medical output without a source trail is the critical gap).","Strengthen identity (patient auth + record binding).","Verify the anti-hallucination (L8) claim with a reproducible eval so it becomes code-verified."],
+ "ruvnet/ruv-neural":["Grow a real L7 orchestration surface so the edge OS can be driven by agents.","Add auditability of the closed loop (what was measured, what actuated, on what basis).","Meet the qualification gate: issue tracker + PRD + ADRs."],
+ "ruvnet/hackerone":["Add L8 continuity: persistent triage memory so dedup/scoring learns over time.","Emit decision provenance (why a report was scored/deduped).","Add reporter identity binding.","Verify in code to leave desc-tier."],
+ "ruvnet/rupixel":["No governance span at all: add lineage/provenance to the ANN substrate (L3 lineage feeds auditability + provenance).","Add an L7 or L8 surface so it is a system, not just a fast retrieval library.","Add docs/PRD to qualify."],
+ "ruvnet/ruvn":["Add L8 persistent evidence memory so dossiers accumulate across sessions.","Strengthen source identity/attribution on the cited evidence.","Verify the cited/graded contract in code."],
+ "ruvnet/llamastack":["Deepen L7: real agent orchestration behind the UI, not just a front-end.","Formalise the identity/auth it already touches into a full span.","Add continuity (L8) so sessions persist.","Qualify with docs/ADRs."],
+ "agenticsorg/edge-agents":["Add an L8 continuity fabric for serverless agents (state that survives cold starts).","Emit action provenance + tie in identity.","Verify the serverless-sovereignty claim in code."],
+ "agenticsorg/lean-agentic":["EVIDENCE FIRST: reconcile code with the description. Either ship the Lean4 formal-verification layer the README promises (making L8 genuinely code-verified) or correct the README to what the Rust code does.","Add issue tracker + PRD + ADRs to meet the qualification gate.","Only then extend orchestration (L7)."],
+ "proffesor-for-testing/agentic-qe":["Verify the L8 pattern-learning (ReasoningBank) claim with a reproducible eval so continuity becomes code-verified, not description-tier.","Emit provenance on generated tests: which agent/model produced each test on what basis — provenance is absent and would deepen the auditability the tool is fundamentally about.","Bind identity into quality-gate approvals (who signed off) so gate decisions are attributable; identity is the set's weakest span.","Confirm the qualification gate: issue tracker + PRD + ADRs + infographic present."],
+ "ohdearquant/lionagi":["Verify the L8 persistence/resume claims with a reproducible eval (kill a run mid-flight, reattach, confirm state fidelity) so continuity moves from desc to code-verified.","Emit provenance across multi-agent runs: which agent/model/tool acted at each DAG node on what authority, turning the 'inspectable state' into an auditable trail.","Bind identity into the per-tool permission policies (who authorized the call) — identity is the set's weakest span.","Confirm the qualification gate: issue tracker + PRD + ADRs + infographic present."],
+ "agenticsorg/community-projects":["Dogfood OIA scoring on incoming submissions (wire metaharness score into intake Stage 2a).","Add identity/roster provenance (the exact gap the committee hit today).","Already code-verified at L7; extend auditability of votes."],
+ "agenticsorg/OIA-Model":["Meta (the spec reader). No remediation as an application; its work is keeping the digest and assessment tools current."],
+ "agenticsorg/agentics-wiki":["Not an intelligence application. If it is meant to become one, define which OIA layer it targets; otherwise it stays content at L6/L9."],
+ "agenticsorg/agentics.org-website2026":["Not an intelligence application, a website at L9. No OIA remediation applies unless it hosts an agent surface."],
+ "agenticsorg/agenticsorg":["Out of scope, the org profile README. No OIA remediation applies."],
+};
+function appByName(n){return apps.find(a=>a[0]===n);}
+function genPrompt(name){
+ const a=appByName(name), L=layers, e=evOf(name);
+ const cog=a[2].map((v,i)=>v==2?L[i][0]+" "+L[i][1]:null).filter(Boolean);
+ const pres=a[2].map((v,i)=>v==1?L[i][0]:null).filter(Boolean);
+ const abs=a[2].map((v,i)=>v==0?L[i][0]:null).filter(Boolean);
+ const spans=a[3].map(s=>s[0]).join(", ");
+ const g=GAPS[name]||["Meet the qualification gate and verify placements in code."];
+ const txt="# Improve "+name+" for the OIA assessment\n\n"+
+  "## Current OIA position (v0, evidence tier: "+EVLBL[e.t]+")\n"+
+  "- Centre of gravity: "+(cog.join("; ")||"none")+"\n- Present: "+(pres.join(", ")||"none")+"\n- Absent: "+(abs.join(", ")||"none")+"\n"+
+  "- Strongest spans: "+spans+"\n- Evidence note: "+e.n+"\n\n"+
+  "## Highest-leverage gaps to close (in order)\n"+g.map((x,i)=>(i+1)+". "+x).join("\n")+"\n\n"+
+  "## For each gap\n- Make the change in code, not just docs.\n- Add a test or artefact that PROVES it, so the placement becomes code-verified.\n- Update the README to name the OIA layer/span it now addresses.\n- Meet the qualification gate: issue tracker, documentation, infographic + PRD + ADRs.\n\n"+
+  "## Definition of done\n"+name+" moves toward code-verified on the targeted layers and gains a new centre-of-gravity layer or a new span in the next OIA assessment. Then Retest.\n\n"+
+  "## Specifications & references (ground the work in these)\n"+
+  "- OIA Model interactive reader (open Section 3 Nine Layers for your target layer, Section 5 Spans for the spans): https://oia.agentics.org\n"+
+  "- OIA Model Digest (verbatim layer + span definitions): https://github.com/agenticsorg/OIA-Model/blob/main/docs/OIA-Model-v0.1-Digest.md\n"+
+  "- OIA Decision Log (design decisions incl. vertical extension): https://github.com/agenticsorg/OIA-Model/blob/main/docs/OIA-Model-v0.1-Decision-Log-Digest.md\n"+
+  "- metaharness (the harness pattern + score command): https://github.com/ruvnet/metaharness\n"+
+  "- Committee charter: https://github.com/agenticsorg/community-projects/blob/main/docs/operating-guidelines/committee-charter.md\n"+
+  "- Intake constitution (machine spec): https://github.com/agenticsorg/community-projects/blob/main/spec/constitution.yaml\n"+
+  "- RFC-001 governance agent: https://github.com/agenticsorg/community-projects/blob/main/RFC-001-governance-agent.md";
+ const box=document.getElementById("promptbox");
+ box.innerHTML='<textarea id="pt" readonly></textarea><div><button onclick="cp()">Copy prompt</button> <span id="cpmsg" class="mrow"></span></div>';
+ document.getElementById("pt").value=txt;
+ box.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function cp(){const t=document.getElementById("pt");t.select();navigator.clipboard.writeText(t.value).then(()=>document.getElementById("cpmsg").textContent="copied to clipboard",()=>document.getElementById("cpmsg").textContent="select-all + copy manually");}
+async function retest(name){
+ const s=document.getElementById("rtstatus"); s.textContent="Scanning repo file tree (client-side)...";
+ const LSIG=[
+  [/\bgpu\b/,/cuda/,/\btpu\b/,/neuromorphic/,/photonic/,/semiconductor/,/cooling/,/\benergy\b/],
+  [/\.wasm/,/\.wat\b/,/\bwasi\b/,/onnx/,/\bmlir\b/,/triton/,/\brocm\b/],
+  [/serverless/,/\bedge\b/,/kubernetes/,/\bk8s\b/,/terraform/,/dockerfile/,/wrangler/,/cloudflare/,/\blambda\b/,/self-host/,/sovereign/],
+  [/vector/,/embedding/,/\bhnsw\b/,/\bivf\b/,/sqlite/,/postgres/,/neo4j/,/\.sql\b/,/lineage/,/chroma/,/pinecone/,/qdrant/,/\bann\b/],
+  [/\btrain/,/fine-?tune/,/\blora\b/,/\brlhf\b/,/\bdpo\b/,/rlaif/,/\bevals?\b/,/checkpoint/,/dataset/],
+  [/inference/,/\bserve/,/rout(er|ing)/,/retriev/,/rerank/,/\bvllm\b/],
+  [/\brag\b/,/retrieval-augment/,/knowledge/,/langchain/,/llamaindex/,/haystack/,/knowledge-?graph/,/\bcontext\b/,/skills?\//],
+  [/\bmcp\b/,/\.mcp/,/\bagents?\b/,/workflow/,/orchestrat/,/langgraph/,/crewai/,/autogen/,/\bswarm\b/,/tool-?call/],
+  [/\bmemory\b/,/witness/,/provenance/,/continuity/,/attestation/,/\.lean\b/,/lakefile/,/audit-?trail/],
+  [/index\.html/,/\.tsx\b/,/\.jsx\b/,/\bvite\b/,/\breact\b/,/\bnext\b/,/frontend/,/\bui\//,/\bpublic\//],
+ ];
+ const SSIG={security:[/security/,/\bcvss\b/,/threat/,/vuln/,/owasp/,/firewall/,/sandbox/],sovereignty:[/local-first/,/self-host/,/\bedge\b/,/serverless/,/sovereign/,/offline/],auditability:[/\baudit/,/adrs?\//,/\badr-/,/constitution/,/governance/,/\btrace/],provenance:[/provenance/,/witness/,/sign(ed|ing)/,/attest/,/cite|citation/,/lineage/],identity:[/\bidentity\b/,/oauth/,/\bauth\b/,/\blogin\b/,/\bsso\b/],energy:[/\benergy\b/,/carbon/,/entrainment/,/\bpower\b/]};
+ const cnt=(rx,c)=>rx.reduce((n,r)=>n+(r.test(c)?1:0),0);
+ try{
+  const meta=await (await fetch("https://api.github.com/repos/"+name)).json();
+  if(meta.message){s.textContent="GitHub API: "+meta.message+" (unauthenticated limit 60/hr).";return;}
+  const br=meta.default_branch||"main";
+  const tj=await (await fetch("https://api.github.com/repos/"+name+"/git/trees/"+br+"?recursive=1")).json();
+  const paths=(tj.tree||[]).map(t=>t.path.toLowerCase());
+  let readme=""; try{const rd=await (await fetch("https://api.github.com/repos/"+name+"/readme")).json(); if(rd.content) readme=atob(rd.content.replace(/\n/g,"")).toLowerCase();}catch(_){}
+  const corpus=paths.join(" ")+" "+readme+" "+((meta.topics||[]).join(" "))+" "+((meta.language||"").toLowerCase());
+  const vals=LSIG.map(rx=>{const x=cnt(rx,corpus);return x>=3?2:x>=1?1:0;});
+  const spans=Object.keys(SSIG).filter(k=>cnt(SSIG[k],corpus)>=1);
+  const gate={issues:!!meta.has_issues,docs:paths.some(x=>/^docs?\//.test(x))||readme.length>800,ADRs:paths.some(x=>/adrs?\/|adr-\d/.test(x)),PRD:paths.some(x=>/prd/.test(x)),infographic:paths.some(x=>/infographic|\.svg$/.test(x))};
+  const a=appByName(name), base=a[2];
+  const diff=vals.map((v,i)=>v!==base[i]?layers[i][0]+(v>base[i]?" ↑":" ↓"):null).filter(Boolean);
+  const hdr=layers.map(l=>`<span style="display:inline-block;width:28px;text-align:center;font-size:10px;color:var(--mut)">${l[0]}</span>`).join("");
+  const mini=vals.map((v,i)=>`<span title="${layers[i][1]}" style="display:inline-block;width:28px;text-align:center;color:${v==2?'var(--o)':v==1?'var(--tx)':'var(--line)'}">${v==2?'●':v==1?'·':'–'}</span>`).join("");
+  const gk=Object.entries(gate).map(([k,v])=>`${k} ${v?'✓':'✗'}`).join(" · ");
+  s.innerHTML=`<b>Auto-scan</b> of ${paths.length} files${tj.truncated?' (tree truncated by GitHub)':''} · pushed ${(meta.pushed_at||'').slice(0,10)}<div style="margin:6px 0;font-family:ui-monospace,Menlo,monospace">${hdr}<br>${mini}</div>Δ vs v0: <b>${diff.length?diff.join(", "):"no change"}</b><br>Spans detected: ${spans.join(", ")||"none"}<br>Qualification gate: ${gk}<br><span style="color:var(--mut)">Evidence: <span class="badge auto">auto ⟳</span> heuristic file-tree scan — structural signals (checks real files, not just names), not comprehension. Promote to <b>code ✓</b> with a reader-agent audit.</span>`;
+  const bdg=document.querySelector('#r'+apps.indexOf(a)+' .badge'); if(bdg){bdg.className='badge auto';bdg.textContent='auto ⟳';}
+ }catch(e){s.textContent="Scan failed (offline, CORS, or rate limit): "+e;}
+}
+
+document.getElementById('key').innerHTML=layers.map(l=>`<span><b>${l[0]}</b> ${l[1]}${STATE[+l[0].slice(1)]?' <span style="color:var(--o)">(state)</span>':''}</span>`).join('');
+document.getElementById('head').innerHTML='<th class="app" style="text-align:left">Application</th>'+layers.map(l=>`<th class="${STATE[+l[0].slice(1)]?'state':''}" title="${l[1]}">${l[0]}</th>`).join('')+'<th style="text-align:left">Spans</th>';
+document.getElementById('body').innerHTML=apps.map((a,i)=>{
+ const cells=a[2].map((v,li)=>`<td>${v?`<div class="cell c${v}" onclick="pick(${i},${li})">${v==2?'●':'·'}</div>`:'<div class="cell c0"></div>'}</td>`).join('');
+ const spans=a[3].map(s=>s[1]===''?`<span class="pill">${s[0]}</span>`:`<span class="pill ${s[1]}">${s[0]}</span>`).join('');
+ const div=(i>0&&a[6]==='infra'&&apps[i-1][6]==='app')?`<tr class="grp"><td colspan="12">Infrastructure / content / meta — not intelligence applications (the OIA lens collapses them to L9 or flags out-of-scope)</td></tr>`:'';
+ return div+`<tr id="r${i}" class="${a[6]}"><td class="app" onclick="pick(${i})">${a[0]}<span class="badge ${evOf(a[0]).t}">${EVLBL[evOf(a[0]).t]}</span><small>${a[1]}</small></td>${cells}<td class="spans">${spans}</td></tr>`;
+}).join('');
+function pick(i,focus){
+ const open=document.querySelector('tr.detail');
+ const same=open&&open.getAttribute('data-for')===String(i);
+ if(open) open.remove();
+ document.querySelectorAll('tr.sel').forEach(r=>r.classList.remove('sel'));
+ if(same) return;
+ const row=document.getElementById('r'+i); row.classList.add('sel');
+ const a=apps[i], why=a[4]||{};
+ const cog=a[2].map((v,li)=>v?[li,v]:null).filter(Boolean).sort((x,y)=>y[1]-x[1]);
+ const lines=cog.map(([li,v])=>{const L=layers[li],r=why[li]||'';const hl=(focus===li)?'style="background:var(--card);border:1px solid var(--o);border-radius:6px;padding:2px 6px;margin:-2px -6px"':'';return `<div class="layline" ${hl}><span class="tag ${v==2?'cog':'pres'}">${L[0]} ${v==2?'●':'·'}</span><span><b>${L[1]}</b>${r?' — '+r:''}</span></div>`;}).join('');
+ const spans=a[3].map(s=>s[1]===''?`<span class="pill">${s[0]}</span>`:`<span class="pill ${s[1]}">${s[0]}</span>`).join('');
+ const tr=document.createElement('tr'); tr.className='detail'; tr.setAttribute('data-for',i);
+ const td=document.createElement('td'); td.colSpan=12;
+ td.innerHTML=`<div class="bd">`+
+   `<div class="mrow"><b>${a[0]}</b> &mdash; ${a[1]}</div>`+
+   `<div class="mrow"><b>Layer footprint &amp; rationale</b></div>${lines}`+
+   `<div class="mrow"><b>Strongest spans:</b> ${spans}</div>`+
+   `<div class="mrow"><b>Operational read (metaharness lens):</b> ${a[5]}</div>`+
+   `<div class="mrow"><b>Evidence tier:</b> <span class="badge ${evOf(a[0]).t}">${EVLBL[evOf(a[0]).t]}</span> ${evOf(a[0]).n}</div>`+
+   `<div class="acts"><button onclick="genPrompt('${a[0]}')">Generate improvement prompt →</button> <button class="ghost" onclick="retest('${a[0]}')">Rescan repo (client-side) ↻</button></div>`+
+   `<div id="rtstatus" class="mrow"></div><div id="promptbox"></div></div>`;
+ tr.appendChild(td); row.after(tr);
+}
+</script></body></html>
