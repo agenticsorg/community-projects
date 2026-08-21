@@ -981,6 +981,49 @@
       "status": "pending",
       "submitted": "2026-08-21",
       "issue": 51
+    },
+    {
+      "name": "michaeloboyle/iicp-node-monitor",
+      "desc": "michaeloboyle/iicp-node-monitor",
+      "layers": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        2,
+        0,
+        0
+      ],
+      "spans": [
+        {
+          "label": "security",
+          "badge": "sec"
+        },
+        {
+          "label": "identity",
+          "badge": "idn"
+        }
+      ],
+      "notes": {
+        "7": "signal-detected centre of gravity (Orchestration & Workflow)"
+      },
+      "narrative": "Auto-classified from a submission. Heuristic file-tree scan of 15 files; language Python, pushed 2026-08-21. Centre of gravity L7; presence L2, L5. This is a structural signal pass, NOT a comprehension read, and awaits committee review before promotion.",
+      "category": "app",
+      "evidence": {
+        "t": "auto",
+        "n": "Heuristic file-tree scan of 15 files on 2026-08-21: structural signals (real files, not just names), not comprehension. Qualification gate: issues ✓, docs ✓, ADRs ✗, PRD ✗, infographic ✗. Promote to code ✓ with a reader-agent audit and committee vote."
+      },
+      "gaps": [
+        "Committee: verify these auto-detected placements against the actual source (auto → code ✓).",
+        "Surface issue tracker + documentation + PRD/ADRs in the repo to meet the qualification gate.",
+        "Name the OIA layers/spans the project targets in its README."
+      ],
+      "status": "pending",
+      "submitted": "2026-08-21",
+      "issue": 55
     }
   ]
 }
