@@ -1024,6 +1024,114 @@
       "status": "pending",
       "submitted": "2026-08-21",
       "issue": 55
+    },
+    {
+      "name": "RobLe3/iicp-directory-rust",
+      "desc": "IICP Directory Service — pre-1.0 Rust operator preview; PHP remains Genesis authority",
+      "layers": [
+        0,
+        0,
+        1,
+        1,
+        0,
+        1,
+        0,
+        2,
+        2,
+        0
+      ],
+      "spans": [
+        {
+          "label": "security",
+          "badge": "sec"
+        },
+        {
+          "label": "sovereignty",
+          "badge": "sov"
+        },
+        {
+          "label": "auditability",
+          "badge": "aud"
+        },
+        {
+          "label": "provenance",
+          "badge": "prov"
+        },
+        {
+          "label": "identity",
+          "badge": "idn"
+        }
+      ],
+      "notes": {
+        "7": "signal-detected centre of gravity (Orchestration & Workflow)",
+        "8": "signal-detected centre of gravity (Continuity Fabric)"
+      },
+      "narrative": "Auto-classified from a submission. Heuristic file-tree scan of 211 files; language Rust, pushed 2026-08-21. Centre of gravity L7, L8; presence L2, L3, L5. This is a structural signal pass, NOT a comprehension read, and awaits committee review before promotion.",
+      "category": "app",
+      "evidence": {
+        "t": "auto",
+        "n": "Heuristic file-tree scan of 211 files on submission: structural signals (real files, not just names), not comprehension. Qualification gate: issues ✓, docs ✓, ADRs ✗, PRD ✗, infographic ✗. Promote to code ✓ with a reader-agent audit and committee vote."
+      },
+      "gaps": [
+        "Committee: verify these auto-detected placements against the actual source (auto → code ✓).",
+        "Surface issue tracker + documentation + PRD/ADRs in the repo to meet the qualification gate.",
+        "Name the OIA layers/spans the project targets in its README."
+      ],
+      "status": "pending",
+      "submitted": null,
+      "issue": 52
+    },
+    {
+      "name": "RobLe3/iicp-client-rust",
+      "desc": "Rust SDK and provider runtime for IICP agent discovery and routing",
+      "layers": [
+        0,
+        0,
+        1,
+        1,
+        0,
+        2,
+        1,
+        2,
+        0,
+        1
+      ],
+      "spans": [
+        {
+          "label": "security",
+          "badge": "sec"
+        },
+        {
+          "label": "auditability",
+          "badge": "aud"
+        },
+        {
+          "label": "provenance",
+          "badge": "prov"
+        },
+        {
+          "label": "identity",
+          "badge": "idn"
+        }
+      ],
+      "notes": {
+        "5": "signal-detected centre of gravity (Inference & Retrieval)",
+        "7": "signal-detected centre of gravity (Orchestration & Workflow)"
+      },
+      "narrative": "Auto-classified from a submission. Heuristic file-tree scan of 215 files; language Rust, pushed 2026-08-21. Centre of gravity L5, L7; presence L2, L3, L6, L9. This is a structural signal pass, NOT a comprehension read, and awaits committee review before promotion.",
+      "category": "app",
+      "evidence": {
+        "t": "auto",
+        "n": "Heuristic file-tree scan of 215 files on submission: structural signals (real files, not just names), not comprehension. Qualification gate: issues ✓, docs ✓, ADRs ✗, PRD ✗, infographic ✗. Promote to code ✓ with a reader-agent audit and committee vote."
+      },
+      "gaps": [
+        "Committee: verify these auto-detected placements against the actual source (auto → code ✓).",
+        "Surface issue tracker + documentation + PRD/ADRs in the repo to meet the qualification gate.",
+        "Name the OIA layers/spans the project targets in its README."
+      ],
+      "status": "pending",
+      "submitted": null,
+      "issue": 53
     }
   ]
 }
