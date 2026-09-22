@@ -52,17 +52,62 @@ jobs:
           ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
           EVENT_DATE: ${{ github.event.issue.updated_at }}
         run: node scripts/oia-intake-step.mjs
+      # Concurrent submissions used to lose rows SILENTLY. Each `issues` event
+      # checks out main, adds its row, and pushes. When two land seconds apart
+      # (#51/#52/#53 on 2026-08-21, 26 seconds apart) the later push is rejected
+      # non-fast-forward -- and the old `|| echo` swallowed the rejection, so the
+      # job reported success with the row dropped on the floor. Two rows had to
+      # be hand-carried back in via PRs #54/#56.
+      #
+      # Now: retry against a freshly fetched main, and FAIL LOUDLY if the row
+      # still cannot be persisted. A green run must mean the row landed.
+      #
+      # This fixes root cause 1 of #57. Root cause 2 -- a single shared mutable
+      # JSON array on the write path, which also causes PR-level textual
+      # conflicts -- needs the per-entry-file redesign and remains OPEN.
       - name: Persist OIA matrix changes
         if: github.event_name == 'issues'
         run: |
-          if [ -n "$(git status --porcelain docs/data/oia-matrix.json docs/badges)" ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          set -euo pipefail
+          if [ -z "$(git status --porcelain docs/data/oia-matrix.json docs/badges)" ]; then
+            echo "no matrix change to persist"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/oia-matrix.json docs/badges
+          git commit -m "oia-matrix: auto-update from issue #${{ github.event.issue.number }} [skip ci]"
+
+          for attempt in 1 2 3 4 5; do
+            if git push; then
+              echo "matrix row persisted on attempt $attempt"
+              exit 0
+            fi
+            echo "push rejected (attempt $attempt): another submission landed first"
+            git fetch origin main
+            if git rebase origin/main; then
+              sleep $((attempt * 2))
+              continue
+            fi
+            # Two appends to the same pending[] array conflict textually almost
+            # every time (#57 root cause 2), so a rebase alone cannot recover the
+            # row. Regenerate it instead: reset to the main that won, re-run the
+            # classification (idempotent -- add-pending dedups by repo name), and
+            # try again. OIA_SKIP_COMMENT stops the submitter being re-notified.
+            echo "rebase conflicted on the shared pending[] array; regenerating the row against current main"
+            git rebase --abort || true
+            git reset --hard origin/main
+            OIA_SKIP_COMMENT=1 node scripts/oia-intake-step.mjs
+            if [ -z "$(git status --porcelain docs/data/oia-matrix.json docs/badges)" ]; then
+              echo "row is already present on current main; nothing left to persist"
+              exit 0
+            fi
             git add docs/data/oia-matrix.json docs/badges
             git commit -m "oia-matrix: auto-update from issue #${{ github.event.issue.number }} [skip ci]"
-            git pull --rebase --autostash origin main || true
-            git push || echo "push skipped (branch protection or race); deploy still reflects local tree"
-          fi
+            sleep $((attempt * 2))
+          done
+          echo "::error::OIA matrix row for issue #${{ github.event.issue.number }} could NOT be persisted after 5 attempts. This run did NOT classify the submission."
+          exit 1
       - name: Build dashboard.json
         env:
           GITHUB_TOKEN: ${{ github.token }}
