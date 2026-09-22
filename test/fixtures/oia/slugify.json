@@ -1,0 +1,36 @@
+{
+ "name": "sindresorhus/slugify",
+ "captured": "2026-09-22",
+ "default_branch": "main",
+ "description": "Slugify a string",
+ "language": "JavaScript",
+ "topics": [
+  "browser",
+  "nodejs",
+  "npm-package",
+  "slug",
+  "slugify",
+  "transliteration",
+  "url-safe"
+ ],
+ "has_issues": true,
+ "truncated": false,
+ "paths": [
+  ".editorconfig",
+  ".gitattributes",
+  ".github",
+  ".github/security.md",
+  ".github/workflows",
+  ".github/workflows/main.yml",
+  ".gitignore",
+  ".npmrc",
+  "index.d.ts",
+  "index.js",
+  "license",
+  "overridable-replacements.js",
+  "package.json",
+  "readme.md",
+  "test.js"
+ ],
+ "readme": "# slugify\n\n> Slugify a string\n\nUseful for URLs, filenames, and IDs.\n\nIt handles most major languages, including [German (umlauts)](https://en.wikipedia.org/wiki/Germanic_umlaut), Vietnamese, Arabic, Russian, [and more](https://github.com/sindresorhus/transliterate#supported-languages).\n\n## Install\n\n```sh\nnpm install @sindresorhus/slugify\n```\n\n## Usage\n\n```js\nimport slugify from '@sindresorhus/slugify';\n\nslugify('I ♥ Dogs');\n//=> 'i-love-dogs'\n\nslugify('  Déjà Vu!  ');\n//=> 'deja-vu'\n\nslugify('fooBar 123 $#%');\n//=> 'foo-bar-123'\n\nslugify('Conway’s Law');\n//=> 'conways-law'\n\nslugify('я люблю единорогов');\n//=> 'ya-lyublyu-edinorogov'\n```\n\n## API\n\n### slugify(string, options?)\n\n#### string\n\nType: `string`\n\nString to slugify.\n\n#### options\n\nType: `object`\n\n##### separator\n\nType: `string`\\\nDefault: `'-'`\n\n```js\nimport slugify from '@sindresorhus/slugify';\n\nslugify('BAR and baz');\n//=> 'bar-and-baz'\n\nslugify('BAR and baz', {separator: '_'});\n//=> 'bar_and_baz'\n\nslugify('BAR and baz', {separator: ''});\n//=> 'barandbaz'\n```\n\n##### lowercase\n\nType: `boolean`\\\nDefault: `true`\n\nMake the slug lowercase.\n\n```js\nimport slugify from '@sindresorhus/slugify';\n\nslugify('Déjà Vu!');\n//=> 'deja-vu'\n\nslugify('Déjà Vu!', {lowercase: false});\n//=> 'Deja-Vu'\n```\n\n##### decamelize\n\nType: `boolean`\\\nDefault: `true`\n\nConvert camelcase to separate words. Internally it does `fooBar` → `foo bar`.\n\n```js\nimport slugify from '@sindresorhus/slugify';\n\nslugify('fooBar');\n//=> 'foo-bar'\n\nslugify('fooBar', {decamelize: false});\n//=> 'foobar'\n```\n\n##### customReplacements\n\nType: `Array<string[]>`\\\nDefault: `[\n\t['&', ' and '],\n\t['🦄', ' unicorn '],\n\t['♥', ' love ']\n]`\n\nAdd your own custom replacements.\n\nThe replacements are run on the original string before any other transformations.\n\nThis only overrides a default replacement if you set an item with the same key, like `&`.\n\n```js\nimport slugify from '@sindresorhus/slugify';\n\nslugify('Foo@unicorn', {\n\tcustomReplacements: [\n\t\t['@', 'at']\n\t]\n});\n//=> 'fooatunicorn'\n```\n\nAdd a leading and trailing space to the replacement to have it separated by dashes:\n\n```js\nimport slugify from '@sindresorhus/slugify';\n\nslugify('foo@unicorn', {\n\tcustomReplacements: [\n\t\t['@', ' at ']\n\t]\n});\n//=> 'foo-at-unicorn'\n```\n\nAnother example:\n\n```js\nimport slugify from '@sindresorhus/slugify';\n\nslugify('I love 🐶', {\n\tcustomReplacements: [\n\t\t['🐶', 'dogs']\n\t]\n});\n//=> 'i-love-dogs'\n```\n\n##### preserveLeadingUnderscore\n\nType: `boolean`\\\nDefault: `false`\n\nIf your string starts with an underscore, it will be preserved in the slugified string.\n\nSometimes leading underscores are intentional, for example, filenames representing hidden paths on a website.\n\n```js\nimport slugify from '@sindresorhus/slugify';\n\nslugify('_foo_bar');\n//=> 'foo-bar'\n\nslugify('_foo_bar', {preserveLeadingUnderscore: true});\n//=> '_foo-bar'\n```\n\n##### preserveTrailingDash\n\nType: `boolean`\\\nDefault: `false`\n\nIf your string ends with a dash, it will be preserved in the slugified string.\n\nFor example, using slugify on an input field would allow for validation while not preventing the user from writing a slug.\n\n```js\nimport slugify from '@sindresorhus/slugify';\n\nslugify('foo-bar-');\n//=> 'foo-bar'\n\nslugify('foo-bar-', {preserveTrailingDash: true});\n//=> 'foo-bar-'\n```\n\n##### preserveCharacters\n\nType: `string[]`\\\nDefault: `[]`\n\nPreserve certain characters.\n\nIt cannot contain the `separator`.\n\nThe apostrophe in a word-final `'s` or `'t` is still dropped, even if you preserve `'`.\n\nFor example, if you want to slugify URLs, but preserve the HTML fragment `#` character.\n\n```js\nimport slugify from '@sindresorhus/slugify';\n\nslugify('foo_bar#baz', {preserveCharacters: ['#']});\n//=> 'foo-bar#baz'\n```\n\n##### locale\n\nType: `string`\\\nDefault: `undefined`\n\nThe locale to use for language-specific transliteration.\n\nSee the [`@sindresorhus/transliterate` package](https://github.com/sindresorhus/transliterate#locale) for more info.\n\n```js\nimport slugify from '@sindresorhus/slugify';\n\nslugify('Räksmörgås');\n//=> 'raeksmoergas'\n\nslugify('Räksmörgås', {locale: 'sv'});\n//=> 'raksmorgas'\n```\n\n##### transliterate\n\nType: `boolean`\\\nDefault: `true`\n\nWhether to transliterate Unicode characters to ASCII.\n\nWhen `false`, non-ASCII characters will be preserved instead of being transliterated. This can improve performance when you don't need transliteration.\n\n```js\nimport slugify from '@sindresorhus/slugify';\n\nslugify('Déjà Vu');\n//=> 'deja-vu'\n\nslugify('Déjà Vu', {transliterate: false});\n//=> 'déjà-vu'\n```\n\n### slugifyWithCounter()\n\nReturns a new instance of `slugify(string, options?)` with a counter to handle multiple occurrences of the same string.\n\n#### Example\n\n```js\nimport {slugifyWithCounter} from '@sindresorhus/slugify';\n\nconst slugify = slugifyWithCounter();\n\nslugify('foo bar');\n//=> 'foo-bar'\n\nslugify('foo bar');\n//=> 'foo-bar-2'\n\nslugify.reset();\n\nslugify('foo bar');\n//=> 'foo-bar'\n```\n\n#### Use-case example of counter\n\nIf, for example, you have a document with multiple sections where each subsection has an example.\n\n```md\n## Section 1\n\n### Example\n\n## Section 2\n\n### Example\n```\n\nYou can then use `slugifyWithCounter()` to generate unique HTML `id`'s to ensure anchors will link to the right headline.\n\n### slugify.reset()\n\nReset the counter\n\n#### Example\n\n```js\nimport {slugifyWithCounter} from '@sindresorhus/slugify';\n\nconst slugify = slugifyWithCounter();\n\nslugify('foo bar');\n//=> 'foo-bar'\n\nslugify('foo bar');\n//=> 'foo-bar-2'\n\nslugify.reset();\n\nslugify('foo bar');\n//=> 'foo-bar'\n```\n\n## Related\n\n- [slugify-cli](https://github.com/sindresorhus/slugify-cli) - CLI for this module\n- [transliterate](https://github.com/sindresorhus/transliterate) - Convert Unicode characters to Latin characters using transliteration\n- [filenamify](https://github.com/sindresorhus/filenamify) - Convert a string to a valid safe filename\n"
+}
