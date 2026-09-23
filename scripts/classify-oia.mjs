@@ -1,33 +1,13 @@
 // OIA heuristic classifier — reads a repo WITHOUT executing it and produces a
 // first-pass OIA matrix entry (layer vector + spans + evidence tier "auto").
-// Ports the client-side LSIG/SSIG signal maps from docs/oia-matrix.html so the
-// server-side auto-classification matches the page's "Rescan" button.
+// Signal maps and corpus construction come from docs/oia-signals.mjs, which the
+// page's "Rescan" button imports too, so the two results cannot drift.
 // Honest by construction: evidence tier is "auto" (structural signals, not
 // comprehension), never "code ✓". Usage: node scripts/classify-oia.mjs owner/name [issueNumber] [YYYY-MM-DD]
 
-const LSIG=[
- [/\bgpu\b/,/cuda/,/\btpu\b/,/neuromorphic/,/photonic/,/semiconductor/,/cooling/,/\benergy\b/],
- [/\.wasm/,/\.wat\b/,/\bwasi\b/,/onnx/,/\bmlir\b/,/triton/,/\brocm\b/],
- [/serverless/,/\bedge\b/,/kubernetes/,/\bk8s\b/,/terraform/,/dockerfile/,/wrangler/,/cloudflare/,/\blambda\b/,/self-host/,/sovereign/],
- [/vector/,/embedding/,/\bhnsw\b/,/\bivf\b/,/sqlite/,/postgres/,/neo4j/,/\.sql\b/,/lineage/,/chroma/,/pinecone/,/qdrant/,/\bann\b/],
- [/\btrain/,/fine-?tune/,/\blora\b/,/\brlhf\b/,/\bdpo\b/,/rlaif/,/\bevals?\b/,/checkpoint/,/dataset/],
- [/inference/,/\bserve/,/rout(er|ing)/,/retriev/,/rerank/,/\bvllm\b/],
- [/\brag\b/,/retrieval-augment/,/knowledge/,/langchain/,/llamaindex/,/haystack/,/knowledge-?graph/,/\bcontext\b/,/skills?\//],
- [/\bmcp\b/,/\.mcp/,/\bagents?\b/,/workflow/,/orchestrat/,/langgraph/,/crewai/,/autogen/,/\bswarm\b/,/tool-?call/],
- [/\bmemory\b/,/witness/,/provenance/,/continuity/,/attestation/,/\.lean\b/,/lakefile/,/audit-?trail/],
- [/index\.html/,/\.tsx\b/,/\.jsx\b/,/\bvite\b/,/\breact\b/,/\bnext\b/,/frontend/,/\bui\//,/\bpublic\//],
-];
-const SSIG={
- security:[/security/,/\bcvss\b/,/threat/,/vuln/,/owasp/,/firewall/,/sandbox/],
- sovereignty:[/local-first/,/self-host/,/\bedge\b/,/serverless/,/sovereign/,/offline/],
- auditability:[/\baudit/,/adrs?\//,/\badr-/,/constitution/,/governance/,/\btrace/],
- provenance:[/provenance/,/witness/,/sign(ed|ing)/,/attest/,/cite|citation/,/lineage/],
- identity:[/\bidentity\b/,/oauth/,/\bauth\b/,/\blogin\b/,/\bsso\b/],
- energy:[/\benergy\b/,/carbon/,/entrainment/,/\bpower\b/],
-};
-const BADGE={security:"sec",sovereignty:"sov",auditability:"aud",provenance:"prov",identity:"idn",energy:"ene"};
-const LAYER_NAMES=["Physical Compute","Silicon Abstraction","Sovereign Infrastructure","Agent Data Substrate","Model Training & Adaptation","Inference & Retrieval","Context & Knowledge","Orchestration & Workflow","Continuity Fabric","Human & Browser Interface"];
-const cnt=(rx,c)=>rx.reduce((n,r)=>n+(r.test(c)?1:0),0);
+import { pathToFileURL } from 'node:url';
+import { LAYER_NAMES, buildCorpus, classifySignals } from '../docs/oia-signals.mjs';
+
 const NAME_RE=/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;   // GitHub owner/repo charset
 // Untrusted text (repo description) is later rendered via innerHTML on the page.
 // Strip HTML-significant chars so a submitted repo can't inject markup/script.
@@ -51,10 +31,8 @@ export async function classify(name,issue,submitted){
  let readme='';
  const rd=await gh('/repos/'+name+'/readme');
  if(rd.ok&&rd.json.content){try{readme=Buffer.from(rd.json.content,'base64').toString('utf8').toLowerCase();}catch{}}
- const corpus=paths.slice(0,6000).join(' ')+' '+readme.slice(0,40000)+' '+((meta.topics||[]).join(' '))+' '+((meta.language||'').toLowerCase());
-
- const layers=LSIG.map(rx=>{const x=cnt(rx,corpus);return x>=3?2:x>=1?1:0;});
- const spans=Object.keys(SSIG).filter(k=>cnt(SSIG[k],corpus)>=1).map(k=>({label:k,badge:BADGE[k]}));
+ const corpus=buildCorpus({paths,readme,topics:meta.topics||[],language:meta.language||''});
+ const {layers,spans}=classifySignals(corpus);
  const cog=layers.map((v,i)=>v===2?'L'+i:null).filter(Boolean);
  const pres=layers.map((v,i)=>v===1?'L'+i:null).filter(Boolean);
  const notes={}; layers.forEach((v,i)=>{if(v===2)notes[i]=`signal-detected centre of gravity (${LAYER_NAMES[i]})`;});
@@ -68,9 +46,9 @@ export async function classify(name,issue,submitted){
   layers,
   spans,
   notes,
-  narrative:`Auto-classified from a submission. Heuristic file-tree scan of ${paths.length} files${t.json.truncated?' (tree truncated)':''}; language ${meta.language||'n/a'}, pushed ${(meta.pushed_at||'').slice(0,10)}. Centre of gravity ${cog.join(', ')||'none detected'}; presence ${pres.join(', ')||'none'}. This is a structural signal pass, NOT a comprehension read, and awaits committee review before promotion.`,
+  narrative:`Auto-classified from a submission. Heuristic file-tree scan of ${corpus.kept} files${t.json.truncated?' (tree truncated)':''}${corpus.dropped?` (${corpus.dropped} scaffolding paths excluded)`:''}; language ${meta.language||'n/a'}, pushed ${(meta.pushed_at||'').slice(0,10)}. Centre of gravity ${cog.join(', ')||'none detected'}; presence ${pres.join(', ')||'none'}. This is a structural signal pass, NOT a comprehension read, and awaits committee review before promotion.`,
   category:'app',
-  evidence:{t:'auto',n:`Heuristic file-tree scan of ${paths.length} files on ${submitted||'submission'}: structural signals (real files, not just names), not comprehension. Qualification gate: ${gateStr}. Promote to code ✓ with a reader-agent audit and committee vote.`},
+  evidence:{t:'auto',n:`Heuristic file-tree scan of ${corpus.kept} project files on ${submitted||'submission'} (${corpus.dropped} scaffolding paths excluded): structural signals (real files, not just names), not comprehension. Qualification gate: ${gateStr}. Promote to code ✓ with a reader-agent audit and committee vote.`},
   gaps:['Committee: verify these auto-detected placements against the actual source (auto → code ✓).','Surface issue tracker + documentation + PRD/ADRs in the repo to meet the qualification gate.','Name the OIA layers/spans the project targets in its README.'],
   status:'pending',
   submitted:submitted||null,
@@ -79,7 +57,7 @@ export async function classify(name,issue,submitted){
 }
 
 // CLI
-if(import.meta.url===`file://${process.argv[1]}`){
+if(import.meta.url===pathToFileURL(process.argv[1]).href){
  const [,,name,issue,submitted]=process.argv;
  if(!name){console.error('usage: node scripts/classify-oia.mjs owner/name [issue] [YYYY-MM-DD]');process.exit(2);}
  classify(name,issue,submitted).then(e=>{console.log(JSON.stringify(e,null,2));}).catch(e=>{console.error(String(e));process.exit(1);});

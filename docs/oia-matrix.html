@@ -141,6 +141,13 @@ tr.pending td.app{box-shadow:inset 3px 0 0 #3e9bff}
 <p>agenticsorg/OIA-Model <code>docs/OIA-Model-v0.1-Digest.md</code> · ruvnet/metaharness README + <code>score</code> · repo list generated 2026-07-15.</p>
 </div></details>
 
+<!-- Signal maps + corpus construction are imported from the SAME module the
+     server-side classifier uses (scripts/classify-oia.mjs), so the Rescan
+     button and the intake workflow can never drift apart. -->
+<script type="module">
+ import * as OIA from "./oia-signals.mjs";
+ window.OIA_SIGNALS = OIA;
+</script>
 <script>
 const layers=[["L0","Physical Compute"],["L1","Silicon Abstraction"],["L2","Sovereign Infrastructure"],["L3","Agent Data Substrate"],["L4","Model Training & Adaptation"],["L5","Inference & Retrieval"],["L6","Context & Knowledge"],["L7","Orchestration & Workflow"],["L8","Continuity Fabric"],["L9","Human & Browser Interface"]];
 const STATE={3:1,8:1};
@@ -191,20 +198,8 @@ function genPrompt(name){
 function cp(){const t=document.getElementById("pt");t.select();navigator.clipboard.writeText(t.value).then(()=>document.getElementById("cpmsg").textContent="copied to clipboard",()=>document.getElementById("cpmsg").textContent="select-all + copy manually");}
 async function retest(name){
  const s=document.getElementById("rtstatus"); s.textContent="Scanning repo file tree (client-side)...";
- const LSIG=[
-  [/\bgpu\b/,/cuda/,/\btpu\b/,/neuromorphic/,/photonic/,/semiconductor/,/cooling/,/\benergy\b/],
-  [/\.wasm/,/\.wat\b/,/\bwasi\b/,/onnx/,/\bmlir\b/,/triton/,/\brocm\b/],
-  [/serverless/,/\bedge\b/,/kubernetes/,/\bk8s\b/,/terraform/,/dockerfile/,/wrangler/,/cloudflare/,/\blambda\b/,/self-host/,/sovereign/],
-  [/vector/,/embedding/,/\bhnsw\b/,/\bivf\b/,/sqlite/,/postgres/,/neo4j/,/\.sql\b/,/lineage/,/chroma/,/pinecone/,/qdrant/,/\bann\b/],
-  [/\btrain/,/fine-?tune/,/\blora\b/,/\brlhf\b/,/\bdpo\b/,/rlaif/,/\bevals?\b/,/checkpoint/,/dataset/],
-  [/inference/,/\bserve/,/rout(er|ing)/,/retriev/,/rerank/,/\bvllm\b/],
-  [/\brag\b/,/retrieval-augment/,/knowledge/,/langchain/,/llamaindex/,/haystack/,/knowledge-?graph/,/\bcontext\b/,/skills?\//],
-  [/\bmcp\b/,/\.mcp/,/\bagents?\b/,/workflow/,/orchestrat/,/langgraph/,/crewai/,/autogen/,/\bswarm\b/,/tool-?call/],
-  [/\bmemory\b/,/witness/,/provenance/,/continuity/,/attestation/,/\.lean\b/,/lakefile/,/audit-?trail/],
-  [/index\.html/,/\.tsx\b/,/\.jsx\b/,/\bvite\b/,/\breact\b/,/\bnext\b/,/frontend/,/\bui\//,/\bpublic\//],
- ];
- const SSIG={security:[/security/,/\bcvss\b/,/threat/,/vuln/,/owasp/,/firewall/,/sandbox/],sovereignty:[/local-first/,/self-host/,/\bedge\b/,/serverless/,/sovereign/,/offline/],auditability:[/\baudit/,/adrs?\//,/\badr-/,/constitution/,/governance/,/\btrace/],provenance:[/provenance/,/witness/,/sign(ed|ing)/,/attest/,/cite|citation/,/lineage/],identity:[/\bidentity\b/,/oauth/,/\bauth\b/,/\blogin\b/,/\bsso\b/],energy:[/\benergy\b/,/carbon/,/entrainment/,/\bpower\b/]};
- const cnt=(rx,c)=>rx.reduce((n,r)=>n+(r.test(c)?1:0),0);
+ const OIA=window.OIA_SIGNALS;
+ if(!OIA){s.textContent="Signal module (oia-signals.mjs) did not load; Rescan unavailable.";return;}
  try{
   const meta=await (await fetch("https://api.github.com/repos/"+name)).json();
   if(meta.message){s.textContent="GitHub API: "+meta.message+" (unauthenticated limit 60/hr).";return;}
@@ -213,16 +208,16 @@ async function retest(name){
   if(tj.message||!Array.isArray(tj.tree)){s.textContent="GitHub tree fetch failed: "+(tj.message||"no tree returned")+" (unauthenticated limit 60/hr).";return;}
   const paths=tj.tree.map(t=>t.path.toLowerCase());
   let readme=""; try{const rd=await (await fetch("https://api.github.com/repos/"+name+"/readme")).json(); if(rd.content) readme=atob(rd.content.replace(/\n/g,"")).toLowerCase();}catch(_){}
-  const corpus=(paths.slice(0,6000).join(" ")+" "+readme.slice(0,40000)+" "+((meta.topics||[]).join(" "))+" "+((meta.language||"").toLowerCase()));
-  const vals=LSIG.map(rx=>{const x=cnt(rx,corpus);return x>=3?2:x>=1?1:0;});
-  const spans=Object.keys(SSIG).filter(k=>cnt(SSIG[k],corpus)>=1);
+  const corpus=OIA.buildCorpus({paths,readme,topics:meta.topics||[],language:meta.language||""});
+  const scored=OIA.classifySignals(corpus);
+  const vals=scored.layers, spans=scored.spans.map(x=>x.label);
   const gate={issues:!!meta.has_issues,docs:paths.some(x=>/^docs?\//.test(x))||readme.length>800,ADRs:paths.some(x=>/adrs?\/|adr-\d/.test(x)),PRD:paths.some(x=>/prd/.test(x)),infographic:paths.some(x=>/infographic|\.svg$/.test(x))};
   const a=appByName(name), base=a[2];
   const diff=vals.map((v,i)=>v!==base[i]?layers[i][0]+(v>base[i]?" ↑":" ↓"):null).filter(Boolean);
   const hdr=layers.map(l=>`<span style="display:inline-block;width:28px;text-align:center;font-size:10px;color:var(--mut)">${l[0]}</span>`).join("");
   const mini=vals.map((v,i)=>`<span title="${layers[i][1]}" style="display:inline-block;width:28px;text-align:center;color:${v==2?'var(--o)':v==1?'var(--tx)':'var(--line)'}">${v==2?'●':v==1?'·':'–'}</span>`).join("");
   const gk=Object.entries(gate).map(([k,v])=>`${k} ${v?'✓':'✗'}`).join(" · ");
-  s.innerHTML=`<b>Auto-scan</b> of ${paths.length} files${tj.truncated?' (tree truncated by GitHub)':''} · pushed ${(meta.pushed_at||'').slice(0,10)}<div style="margin:6px 0;font-family:ui-monospace,Menlo,monospace">${hdr}<br>${mini}</div>Δ vs v0: <b>${diff.length?diff.join(", "):"no change"}</b><br>Spans detected: ${spans.join(", ")||"none"}<br>Qualification gate: ${gk}<br><span style="color:var(--mut)">Evidence: <span class="badge auto">auto ⟳</span> heuristic file-tree scan — structural signals (checks real files, not just names), not comprehension. Promote to <b>code ✓</b> with a reader-agent audit.</span>`;
+  s.innerHTML=`<b>Auto-scan</b> of ${corpus.kept} project files${corpus.dropped?` (${corpus.dropped} scaffolding paths excluded)`:''}${tj.truncated?' (tree truncated by GitHub)':''} · pushed ${(meta.pushed_at||'').slice(0,10)}<div style="margin:6px 0;font-family:ui-monospace,Menlo,monospace">${hdr}<br>${mini}</div>Δ vs v0: <b>${diff.length?diff.join(", "):"no change"}</b><br>Spans detected: ${spans.join(", ")||"none"}<br>Qualification gate: ${gk}<br><span style="color:var(--mut)">Evidence: <span class="badge auto">auto ⟳</span> heuristic file-tree scan — structural signals (checks real files, not just names), not comprehension. Promote to <b>code ✓</b> with a reader-agent audit.</span>`;
   const bdg=document.querySelector('#r'+apps.indexOf(a)+' .badge'); if(bdg){bdg.className='badge auto';bdg.textContent='auto ⟳';}
  }catch(e){s.textContent="Scan failed (offline, CORS, or rate limit): "+e;}
 }
