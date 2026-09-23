@@ -20,6 +20,10 @@ function extractRepo(b){
 }
 async function comment(txt){
  if(!token||!issue) return;
+ // Set on the persist-step retry path (pages.yml): the classification is being
+ // regenerated against a main that moved under us, and the submitter has already
+ // been told. A retry must not re-comment on the issue.
+ if(process.env.OIA_SKIP_COMMENT==='1'){console.log('comment suppressed (retry pass)');return;}
  await fetch(`https://api.github.com/repos/${repo}/issues/${issue}/comments`,{
   method:'POST',
   headers:{authorization:'Bearer '+token,accept:'application/vnd.github+json','user-agent':'oia-intake','content-type':'application/json'},
