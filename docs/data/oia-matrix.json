@@ -1132,6 +1132,67 @@
       "status": "pending",
       "submitted": null,
       "issue": 53
+    },
+    {
+      "name": "future-agi/future-agi",
+      "desc": "Open-source, end-to-end platform for evaluating, observing, and improving LLM and AI agent applications. Tracing · Evals",
+      "layers": [
+        0,
+        0,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        0,
+        2
+      ],
+      "spans": [
+        {
+          "label": "security",
+          "badge": "sec"
+        },
+        {
+          "label": "sovereignty",
+          "badge": "sov"
+        },
+        {
+          "label": "auditability",
+          "badge": "aud"
+        },
+        {
+          "label": "provenance",
+          "badge": "prov"
+        },
+        {
+          "label": "identity",
+          "badge": "idn"
+        }
+      ],
+      "notes": {
+        "2": "signal-detected centre of gravity (Sovereign Infrastructure)",
+        "3": "signal-detected centre of gravity (Agent Data Substrate)",
+        "4": "signal-detected centre of gravity (Model Training & Adaptation)",
+        "5": "signal-detected centre of gravity (Inference & Retrieval)",
+        "6": "signal-detected centre of gravity (Context & Knowledge)",
+        "7": "signal-detected centre of gravity (Orchestration & Workflow)",
+        "9": "signal-detected centre of gravity (Human & Browser Interface)"
+      },
+      "narrative": "Auto-classified from a submission. Heuristic file-tree scan of 6000 of 12397 project files (58 scaffolding paths excluded; 6397 beyond the 6000-file scan cap, not read); language Python, pushed 2026-09-25. Centre of gravity L2, L3, L4, L5, L6, L7, L9; presence none. This is a structural signal pass, NOT a comprehension read, and awaits committee review before promotion.",
+      "category": "app",
+      "evidence": {
+        "t": "auto",
+        "n": "Heuristic file-tree scan of 6000 of 12397 project files on 2026-09-24 (58 scaffolding paths excluded; 6397 beyond the 6000-file scan cap, not read): structural signals (real files, not just names), not comprehension. Qualification gate: issues ✓, docs ✓, ADRs ✗, PRD ✗, infographic ✓. Promote to code ✓ with a reader-agent audit and committee vote."
+      },
+      "gaps": [
+        "Committee: verify these auto-detected placements against the actual source (auto → code ✓).",
+        "Surface issue tracker + documentation + PRD/ADRs in the repo to meet the qualification gate.",
+        "Name the OIA layers/spans the project targets in its README."
+      ],
+      "status": "pending",
+      "submitted": "2026-09-24",
+      "issue": null
     }
   ]
 }

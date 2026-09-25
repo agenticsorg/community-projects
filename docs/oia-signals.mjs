@@ -79,16 +79,31 @@ export function denoisePaths(paths){
  * on the matrix row for display only. Adding it would be a scope change that
  * promotes rows rather than de-noising them; propose it separately if wanted.
  */
+/** Upper bound on file paths read into the tree corpus. */
+export const SCAN_CAP = 6000;
+
 export function buildCorpus({paths=[], readme='', topics=[], language=''} = {}){
- const lower = paths.map(p => String(p).toLowerCase());
- const kept  = denoisePaths(lower).slice(0, 6000);
- const tree  = kept.join(' ');
+ const lower    = paths.map(p => String(p).toLowerCase());
+ const denoised = denoisePaths(lower);
+ const kept     = denoised.slice(0, SCAN_CAP);
+ const tree     = kept.join(' ');
  const doc   = [
    String(readme||'').toLowerCase().slice(0, 40000),
    (topics||[]).join(' ').toLowerCase(),
    String(language||'').toLowerCase(),
  ].join(' ');
- return {tree, doc, all: tree + ' ' + doc, kept: kept.length, dropped: lower.length - kept.length};
+ // `dropped` and `truncated` are deliberately separate (#64). They used to be
+ // summed into one counter computed against the pre-cap length, which the
+ // narrative then reported wholly as scaffolding. On a repo larger than
+ // SCAN_CAP that published a scaffolding count off by two orders of magnitude
+ // and hid the fact that most of the tree was never read at all.
+ // kept + dropped + truncated partitions the input.
+ return {
+   tree, doc, all: tree + ' ' + doc,
+   kept:      kept.length,
+   dropped:   lower.length - denoised.length,
+   truncated: denoised.length - kept.length,
+ };
 }
 
 /** How many regexes in a group match the corpus (presence per regex, not total hits). */

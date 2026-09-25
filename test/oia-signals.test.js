@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
-  LSIG, SSIG, BOILERPLATE, denoisePaths, buildCorpus, classifySignals, cnt,
+  LSIG, SSIG, BOILERPLATE, SCAN_CAP, denoisePaths, buildCorpus, classifySignals, cnt,
 } from '../docs/oia-signals.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -161,4 +161,44 @@ test('#50: the server classifier defines no signal maps of its own', () => {
     'classify-oia.mjs must import the shared signal module');
   assert.doesNotMatch(src, /const\s+LSIG\s*=/, 'classify-oia.mjs must not redeclare LSIG');
   assert.doesNotMatch(src, /const\s+SSIG\s*=/, 'classify-oia.mjs must not redeclare SSIG');
+});
+
+// ---------------------------------------------------------------------------
+// Issue #64 defect 1 — scaffolding and scan-cap truncation are different things
+// and must be counted separately.
+//
+// buildCorpus used to compute `dropped` against the pre-cap length, so the two
+// were summed and the narrative attributed all of it to scaffolding. On
+// future-agi/future-agi that published "6455 scaffolding paths excluded" when
+// 58 were scaffolding and 6397 were simply beyond the scan cap: an overstatement
+// of roughly 110x, and it concealed that only 48% of the repo was read.
+//
+// It stayed latent because every earlier submission was smaller than the cap,
+// so `dropped` was 0 and the parenthetical never rendered.
+// ---------------------------------------------------------------------------
+test('#64: dropped counts scaffolding only, truncated counts the scan-cap overflow', () => {
+  const scaffolding = ['.github/workflows/ci.yml', 'package-lock.json', 'license'];
+  const overflow = 500;
+  const real = Array.from({ length: SCAN_CAP + overflow }, (_, i) => `src/mod${i}.ts`);
+  const c = buildCorpus({ paths: [...scaffolding, ...real] });
+
+  assert.equal(c.dropped, scaffolding.length,
+    'dropped must count de-noised scaffolding only, never the scan-cap overflow');
+  assert.equal(c.truncated, overflow,
+    'truncated must count the paths discarded by the scan cap');
+  assert.equal(c.kept, SCAN_CAP, 'kept is capped at SCAN_CAP');
+});
+
+test('#64: a repo under the scan cap reports no truncation', () => {
+  const c = buildCorpus({ paths: ['.github/workflows/ci.yml', 'src/a.ts', 'src/b.ts'] });
+  assert.equal(c.dropped, 1, 'the workflow file is scaffolding');
+  assert.equal(c.truncated, 0, 'nothing was beyond the cap');
+  assert.equal(c.kept, 2);
+});
+
+test('#64: kept + dropped + truncated accounts for every input path', () => {
+  const paths = ['license', ...Array.from({ length: SCAN_CAP + 7 }, (_, i) => `pkg/f${i}.py`)];
+  const c = buildCorpus({ paths });
+  assert.equal(c.kept + c.dropped + c.truncated, paths.length,
+    'the three counters must partition the input, with nothing unaccounted for');
 });
