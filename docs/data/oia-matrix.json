@@ -937,7 +937,7 @@
         0,
         2,
         1,
-        2,
+        1,
         1,
         0
       ],
@@ -964,14 +964,13 @@
         }
       ],
       "notes": {
-        "5": "signal-detected centre of gravity (Inference & Retrieval)",
-        "7": "signal-detected centre of gravity (Orchestration & Workflow)"
+        "5": "signal-detected centre of gravity (Inference & Retrieval)"
       },
-      "narrative": "Auto-classified from a submission. Heuristic file-tree scan of 541 files; language Python, pushed 2026-08-21. Centre of gravity L5, L7; presence L2, L3, L6, L8. This is a structural signal pass, NOT a comprehension read, and awaits committee review before promotion.",
+      "narrative": "Auto-classified from a submission. Heuristic file-tree scan of 595 project files (13 scaffolding paths excluded); language Python, pushed 2026-09-25. Centre of gravity L5; presence L2, L3, L6, L7, L8. This is a structural signal pass, NOT a comprehension read, and awaits committee review before promotion.",
       "category": "app",
       "evidence": {
         "t": "auto",
-        "n": "Heuristic file-tree scan of 541 files on 2026-08-21: structural signals (real files, not just names), not comprehension. Qualification gate: issues ✓, docs ✓, ADRs ✗, PRD ✗, infographic ✗. Promote to code ✓ with a reader-agent audit and committee vote."
+        "n": "Heuristic file-tree scan of 595 project files on 2026-09-28 (13 scaffolding paths excluded): structural signals (real files, not just names), not comprehension. Qualification gate: issues ✓, docs ✓, ADRs ✗, PRD ✗, infographic ✗. Promote to code ✓ with a reader-agent audit and committee vote."
       },
       "gaps": [
         "Committee: verify these auto-detected placements against the actual source (auto → code ✓).",
@@ -979,7 +978,7 @@
         "Name the OIA layers/spans the project targets in its README."
       ],
       "status": "pending",
-      "submitted": "2026-08-21",
+      "submitted": "2026-09-28",
       "issue": 51
     },
     {
