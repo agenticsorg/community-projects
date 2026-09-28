@@ -6,7 +6,7 @@
 // comprehension), never "code ✓". Usage: node scripts/classify-oia.mjs owner/name [issueNumber] [YYYY-MM-DD]
 
 import { pathToFileURL } from 'node:url';
-import { LAYER_NAMES, buildCorpus, classifySignals } from '../docs/oia-signals.mjs';
+import { LAYER_NAMES, SCAN_CAP, buildCorpus, classifySignals } from '../docs/oia-signals.mjs';
 
 const NAME_RE=/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;   // GitHub owner/repo charset
 // Untrusted text (repo description) is later rendered via innerHTML on the page.
@@ -40,15 +40,26 @@ export async function classify(name,issue,submitted){
  const gate={issues:!!meta.has_issues,docs:paths.some(x=>/^docs?\//.test(x))||readme.length>800,ADRs:paths.some(x=>/adrs?\/|adr-\d/.test(x)),PRD:paths.some(x=>/prd/.test(x)),infographic:paths.some(x=>/infographic|\.svg$/.test(x))};
  const gateStr=Object.entries(gate).map(([k,v])=>`${k} ${v?'✓':'✗'}`).join(', ');
 
+ // #64: scaffolding exclusion and scan-cap truncation are reported separately.
+ // Summing them and calling the total "scaffolding" overstated the count by two
+ // orders of magnitude on large repos and hid how much of the tree went unread.
+ const denoisedTotal=corpus.kept+corpus.truncated;
+ const scanScope=corpus.truncated?`${corpus.kept} of ${denoisedTotal}`:`${corpus.kept}`;
+ const scanParts=[];
+ if(corpus.dropped) scanParts.push(`${corpus.dropped} scaffolding path${corpus.dropped===1?'':'s'} excluded`);
+ if(corpus.truncated) scanParts.push(`${corpus.truncated} beyond the ${SCAN_CAP}-file scan cap, not read`);
+ if(t.json.truncated) scanParts.push('tree truncated by GitHub');
+ const scanNote=scanParts.length?` (${scanParts.join('; ')})`:'';
+
  return {
   name,
   desc:clean(meta.description||name,120),
   layers,
   spans,
   notes,
-  narrative:`Auto-classified from a submission. Heuristic file-tree scan of ${corpus.kept} files${t.json.truncated?' (tree truncated)':''}${corpus.dropped?` (${corpus.dropped} scaffolding paths excluded)`:''}; language ${meta.language||'n/a'}, pushed ${(meta.pushed_at||'').slice(0,10)}. Centre of gravity ${cog.join(', ')||'none detected'}; presence ${pres.join(', ')||'none'}. This is a structural signal pass, NOT a comprehension read, and awaits committee review before promotion.`,
+  narrative:`Auto-classified from a submission. Heuristic file-tree scan of ${scanScope} project files${scanNote}; language ${meta.language||'n/a'}, pushed ${(meta.pushed_at||'').slice(0,10)}. Centre of gravity ${cog.join(', ')||'none detected'}; presence ${pres.join(', ')||'none'}. This is a structural signal pass, NOT a comprehension read, and awaits committee review before promotion.`,
   category:'app',
-  evidence:{t:'auto',n:`Heuristic file-tree scan of ${corpus.kept} project files on ${submitted||'submission'} (${corpus.dropped} scaffolding paths excluded): structural signals (real files, not just names), not comprehension. Qualification gate: ${gateStr}. Promote to code ✓ with a reader-agent audit and committee vote.`},
+  evidence:{t:'auto',n:`Heuristic file-tree scan of ${scanScope} project files on ${submitted||'submission'}${scanNote}: structural signals (real files, not just names), not comprehension. Qualification gate: ${gateStr}. Promote to code ✓ with a reader-agent audit and committee vote.`},
   gaps:['Committee: verify these auto-detected placements against the actual source (auto → code ✓).','Surface issue tracker + documentation + PRD/ADRs in the repo to meet the qualification gate.','Name the OIA layers/spans the project targets in its README.'],
   status:'pending',
   submitted:submitted||null,

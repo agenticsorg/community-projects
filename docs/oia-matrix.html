@@ -217,7 +217,14 @@ async function retest(name){
   const hdr=layers.map(l=>`<span style="display:inline-block;width:28px;text-align:center;font-size:10px;color:var(--mut)">${l[0]}</span>`).join("");
   const mini=vals.map((v,i)=>`<span title="${layers[i][1]}" style="display:inline-block;width:28px;text-align:center;color:${v==2?'var(--o)':v==1?'var(--tx)':'var(--line)'}">${v==2?'●':v==1?'·':'–'}</span>`).join("");
   const gk=Object.entries(gate).map(([k,v])=>`${k} ${v?'✓':'✗'}`).join(" · ");
-  s.innerHTML=`<b>Auto-scan</b> of ${corpus.kept} project files${corpus.dropped?` (${corpus.dropped} scaffolding paths excluded)`:''}${tj.truncated?' (tree truncated by GitHub)':''} · pushed ${(meta.pushed_at||'').slice(0,10)}<div style="margin:6px 0;font-family:ui-monospace,Menlo,monospace">${hdr}<br>${mini}</div>Δ vs v0: <b>${diff.length?diff.join(", "):"no change"}</b><br>Spans detected: ${spans.join(", ")||"none"}<br>Qualification gate: ${gk}<br><span style="color:var(--mut)">Evidence: <span class="badge auto">auto ⟳</span> heuristic file-tree scan — structural signals (checks real files, not just names), not comprehension. Promote to <b>code ✓</b> with a reader-agent audit.</span>`;
+  // #64: report scaffolding exclusion and scan-cap truncation separately.
+  const scanScope=corpus.truncated?`${corpus.kept} of ${corpus.kept+corpus.truncated}`:`${corpus.kept}`;
+  const scanParts=[];
+  if(corpus.dropped) scanParts.push(`${corpus.dropped} scaffolding path${corpus.dropped===1?'':'s'} excluded`);
+  if(corpus.truncated) scanParts.push(`${corpus.truncated} beyond the ${OIA.SCAN_CAP}-file scan cap, not read`);
+  if(tj.truncated) scanParts.push('tree truncated by GitHub');
+  const scanNote=scanParts.length?` (${scanParts.join('; ')})`:'';
+  s.innerHTML=`<b>Auto-scan</b> of ${scanScope} project files${scanNote} · pushed ${(meta.pushed_at||'').slice(0,10)}<div style="margin:6px 0;font-family:ui-monospace,Menlo,monospace">${hdr}<br>${mini}</div>Δ vs v0: <b>${diff.length?diff.join(", "):"no change"}</b><br>Spans detected: ${spans.join(", ")||"none"}<br>Qualification gate: ${gk}<br><span style="color:var(--mut)">Evidence: <span class="badge auto">auto ⟳</span> heuristic file-tree scan — structural signals (checks real files, not just names), not comprehension. Promote to <b>code ✓</b> with a reader-agent audit.</span>`;
   const bdg=document.querySelector('#r'+apps.indexOf(a)+' .badge'); if(bdg){bdg.className='badge auto';bdg.textContent='auto ⟳';}
  }catch(e){s.textContent="Scan failed (offline, CORS, or rate limit): "+e;}
 }
