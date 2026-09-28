@@ -1,0 +1,66 @@
+name: Mutation testing
+
+# Breaks the source one edit at a time and checks that the test suite notices.
+# A mutant the suite still passes is a SURVIVOR: a line of behaviour nothing
+# asserts on.
+#
+# WHY: green CI proves the tests ran, not that they can fail. This repository
+# has shipped a defect past a full green suite, and the test that was meant to
+# guard it passed because it only exercised the case where the guard was
+# irrelevant. This job measures whether our assertions can bite.
+#
+# WHAT IT DOES NOT DO: mutation testing finds behaviour that is UNASSERTED. It
+# cannot find behaviour that is asserted but wrong. A rule that is confidently
+# tested and confidently incorrect scores 100% here. Do not read a high score
+# as correctness.
+#
+# Nightly rather than per-PR: a full run is minutes, and survivors are a
+# standing property of the suite rather than a property of one change.
+
+on:
+  schedule:
+    - cron: '0 7 * * *'     # 07:00 UTC daily, after the 06:00 dashboard refresh
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Single file to mutate (blank = all targets)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  mutate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+
+      - name: Run mutation testing
+        id: mutate
+        run: |
+          set -euo pipefail
+          ARGS=(--report mutation-report.md --threshold "${MUTATION_FLOOR}")
+          if [ -n "${{ inputs.target }}" ]; then ARGS+=(--target "${{ inputs.target }}"); fi
+          node scripts/mutate.mjs "${ARGS[@]}"
+        env:
+          # The floor is the score measured when this job landed, so the suite
+          # can only ratchet upward. Moving it DOWN is a deliberate act that
+          # belongs in a PR with a reason, not a quiet edit.
+          MUTATION_FLOOR: '51'
+
+      - name: Publish the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report
+          path: mutation-report.md
+          if-no-files-found: warn
+
+      - name: Summarise on the run page
+        if: always()
+        run: cat mutation-report.md >> "$GITHUB_STEP_SUMMARY" || true
