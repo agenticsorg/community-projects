@@ -113,22 +113,48 @@ export const cnt = (rx, c) => rx.reduce((n, r) => n + (r.test(c) ? 1 : 0), 0);
  * Score a repo into the OIA layer vector + spans.
  *
  * Layer value:
- *   2 = centre of gravity — 3+ distinct signals overall AND at least one of
- *       them present in the project's own prose (README/topics/description).
- *       The doc-side requirement is what stops a pile of file paths from
- *       asserting a centre of gravity nobody claimed.
- *   1 = presence — at least one signal anywhere.
+ *   2 = centre of gravity — at least one signal from the FILE TREE, at least
+ *       one from the project's own PROSE, and three or more distinct signals
+ *       across the two. Both sides have to say something.
+ *   1 = presence — at least one signal on either side.
  *   0 = none.
+ *
+ * Why the two sides are counted separately (#64, defect 2). The previous rule
+ * was `all >= 3 && doc >= 1` over `all = tree + ' ' + doc`. Because doc is a
+ * substring of all, prose satisfied both halves of the test on its own and the
+ * file tree could contribute nothing. The brake and the signal were the same
+ * input, so the guard never braked. Measured on future-agi/future-agi: the
+ * doc-only vector was identical to the full vector, and 6,000 scanned paths
+ * changed no placement. It also made README length a lever a submitter could
+ * pull, which is the salting risk #48 named.
+ *
+ * Union, not sum: a signal found in both the tree and the prose counts once.
+ * Summing would let a single strongly-stated concept clear a threshold meant
+ * to require breadth.
  */
+/** Distinct regexes in a group that match either side. Union, so a signal
+ *  appearing in both the tree and the prose is one signal, not two. */
+export function signalHits(group, c){
+ let tree = 0, doc = 0, union = 0;
+ for (const rx of group){
+  const t = rx.test(c.tree), d = rx.test(c.doc);
+  if (t) tree++;
+  if (d) doc++;
+  if (t || d) union++;
+ }
+ return {tree, doc, union};
+}
+
 export function classifySignals(input){
  const c = input && input.all !== undefined ? input : buildCorpus(input);
  const layers = LSIG.map(group => {
-  const all = cnt(group, c.all);
-  const doc = cnt(group, c.doc);
-  return (all >= 3 && doc >= 1) ? 2 : (all >= 1 ? 1 : 0);
+  const h = signalHits(group, c);
+  // Centre of gravity requires BOTH sides to say something, plus three
+  // distinct signals overall. Presence is any signal, either side.
+  return (h.union >= 3 && h.tree >= 1 && h.doc >= 1) ? 2 : (h.union >= 1 ? 1 : 0);
  });
  const spans = Object.keys(SSIG)
-   .filter(k => cnt(SSIG[k], c.all) >= 1)
+   .filter(k => signalHits(SSIG[k], c).union >= 1)
    .map(k => ({label: k, badge: BADGE[k]}));
  return {layers, spans, corpus: c};
 }

@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
-  LSIG, SSIG, BOILERPLATE, SCAN_CAP, denoisePaths, buildCorpus, classifySignals, cnt,
+  LSIG, SSIG, BOILERPLATE, SCAN_CAP, denoisePaths, buildCorpus, classifySignals, signalHits, cnt,
 } from '../docs/oia-signals.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -99,6 +99,70 @@ test('a centre of gravity needs corroboration from the project prose', () => {
   assert.equal(corroborated.layers[7], 2, 'prose corroboration promotes it to centre of gravity');
 });
 
+// ---------------------------------------------------------------------------
+// Issue #64, defect 2 — the corroboration guard must actually corroborate.
+//
+// The old rule was `all >= 3 && doc >= 1` over `all = tree + ' ' + doc`. Because
+// doc is a substring of all, prose satisfied BOTH halves on its own and the file
+// tree could contribute nothing. Each test below fails against that rule.
+// ---------------------------------------------------------------------------
+
+test('#64: prose alone cannot assert a centre of gravity', () => {
+  // No orchestration anywhere in the tree; the README does all the talking.
+  const r = classifySignals(buildCorpus({
+    paths: ['index.js', 'readme.md', 'package.json'],
+    readme: 'An agent orchestration runtime with a workflow engine and swarm coordination.',
+    topics: [], language: 'JavaScript',
+  }));
+  assert.equal(r.layers[7], 1,
+    'a README-only claim must be presence at most; the old rule scored this 2');
+});
+
+test('#64: the file tree alone cannot assert a centre of gravity either', () => {
+  const r = classifySignals(buildCorpus({
+    paths: ['src/orchestrator.ts', 'src/agents/swarm.ts', 'src/workflow/run.ts'],
+    readme: '', topics: [], language: '',
+  }));
+  assert.equal(r.layers[7], 1, 'tree-only must be presence at most');
+});
+
+test('#64: a centre of gravity needs both sides plus breadth', () => {
+  const both = classifySignals(buildCorpus({
+    paths: ['src/orchestrator.ts', 'src/agents/swarm.ts', 'src/workflow/run.ts'],
+    readme: 'An agent orchestration runtime.', topics: [], language: '',
+  }));
+  assert.equal(both.layers[7], 2, 'tree and prose agreeing, with 3+ signals, is a centre of gravity');
+});
+
+test('#64: two-sided but narrow stays presence (breadth is still required)', () => {
+  // One signal, stated on both sides. Corroborated but not broad.
+  const r = classifySignals(buildCorpus({
+    paths: ['src/orchestrator.ts'], readme: 'An orchestration tool.', topics: [], language: '',
+  }));
+  assert.equal(r.layers[7], 1, 'a single corroborated signal is presence, not a centre of gravity');
+});
+
+test('#64: signalHits counts the union, so a signal on both sides counts once', () => {
+  const c = buildCorpus({ paths: ['src/workflow/run.ts'], readme: 'a workflow engine', topics: [], language: '' });
+  const h = signalHits(LSIG[7], c);
+  assert.equal(h.tree, 1, 'one signal in the tree');
+  assert.equal(h.doc, 1, 'the same signal in the prose');
+  assert.equal(h.union, 1, 'union must be 1, not 2; summing would fake breadth');
+});
+
+test('#64: regression on the real repo that surfaced it', () => {
+  // michaeloboyle/iicp-node-monitor: 17 files, 8778-char README. Under the old
+  // rule it claimed L7 Orchestration as a centre of gravity with ZERO L7 signals
+  // in its file tree.
+  const f = JSON.parse(readFileSync(join(HERE, 'fixtures', 'oia', 'iicp-node-monitor.json'), 'utf8'));
+  const c = buildCorpus(f);
+  const h = signalHits(LSIG[7], c);
+  assert.equal(h.tree, 0, 'fixture must still have no L7 signal in its tree');
+  assert.ok(h.doc >= 3, 'fixture must still have a prose-heavy L7 claim');
+  assert.equal(classifySignals(c).layers[7], 1,
+    'L7 must be presence, not a centre of gravity, on prose alone');
+});
+
 test('classifySignals accepts either a raw input or a prebuilt corpus', () => {
   const input = fixture('iicp');
   const a = classifySignals(input);
@@ -118,6 +182,7 @@ const GOLDEN = {
   'community-projects': { layers: [0,0,1,1,0,0,0,1,1,1], spans: ['auditability','provenance','sovereignty'] },
   iicp:                 { layers: [0,0,1,1,0,2,1,1,1,0], spans: ['auditability','identity','provenance','security','sovereignty'] },
   'lean-agentic':       { layers: [0,2,0,2,2,2,2,2,2,1], spans: ['auditability','identity','provenance','security','sovereignty'] },
+  'iicp-node-monitor':  { layers: [0,0,1,0,0,2,0,1,1,0], spans: ['identity','provenance','security'] },
 };
 
 for (const [name, want] of Object.entries(GOLDEN)) {
