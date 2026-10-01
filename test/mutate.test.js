@@ -7,7 +7,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { maskNonCode, planMutations } from '../scripts/mutate.mjs';
+import { maskNonCode, planMutations, fmtScore } from '../scripts/mutate.mjs';
 
 // ---------------------------------------------------------------------------
 // Masking. A mutation landing in a comment or a string is always a survivor and
@@ -121,4 +121,39 @@ test('importing the harness does not mutate anything', async () => {
   await new Promise(r => setTimeout(r, 150));
   assert.equal(readFileSync(target, 'utf8'), before,
     'importing scripts/mutate.mjs must not touch source files');
+});
+
+// ---------------------------------------------------------------------------
+// Score formatting. The printed score is copied into the workflow's floor, so
+// it has to be a LOWER bound on the real value. `toFixed` rounds, and that
+// failed the gate on its own baseline: 131/257 is 50.97%, printed as "51.0%",
+// floor set to 51, and 50.97 < 51.
+// ---------------------------------------------------------------------------
+test('the printed score truncates rather than rounds, so it is safe as a floor', () => {
+  const real = (131 / 257) * 100;            // 50.97276...
+  assert.equal(fmtScore(real), '50.97');
+  assert.ok(Number(fmtScore(real)) <= real,
+    'the printed value must never exceed the real score, or a copied floor fails its own baseline');
+});
+
+test('a score that would round UP is still printed down', () => {
+  assert.equal(fmtScore(50.999), '50.99', 'must not print 51.00');
+  assert.equal(fmtScore(99.999), '99.99', 'must not print 100.00 for an imperfect suite');
+  assert.ok(Number(fmtScore(50.999)) <= 50.999);
+});
+
+test('exact values are preserved', () => {
+  assert.equal(fmtScore(100), '100.00');
+  assert.equal(fmtScore(0), '0.00');
+  assert.equal(fmtScore(51), '51.00');
+});
+
+test('a floor copied from the output always passes the suite it was measured on', () => {
+  // The property the gate actually needs, stated as a property.
+  for (const [killed, total] of [[131, 257], [1, 3], [2, 3], [99, 100], [7, 9], [0, 5], [5, 5]]) {
+    const score = (killed / total) * 100;
+    const floor = Number(fmtScore(score));
+    assert.ok(!(score < floor),
+      `floor ${floor} copied from ${killed}/${total} must not fail score ${score}`);
+  }
 });
