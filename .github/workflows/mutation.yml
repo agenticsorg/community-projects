@@ -51,7 +51,13 @@ jobs:
           # The floor is the score measured when this job landed, so the suite
           # can only ratchet upward. Moving it DOWN is a deliberate act that
           # belongs in a PR with a reason, not a quiet edit.
-          MUTATION_FLOOR: '51'
+          #
+          # Take this number from the job output verbatim. That output truncates
+          # rather than rounds, precisely so a value copied from it is always a
+          # safe floor. 131/257 is 50.97%, not the 51.0% an earlier rounded
+          # report printed, and that one-hundredth of a point failed the gate on
+          # the very suite it was measured against.
+          MUTATION_FLOOR: '50.97'
 
       - name: Publish the report
         if: always()

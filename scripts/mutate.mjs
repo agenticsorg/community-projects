@@ -71,6 +71,23 @@ const OPERATORS = [
 // prose. A mutated comment is always a survivor and always meaningless, and a
 // few hundred of those would bury the real findings.
 // ---------------------------------------------------------------------------
+/**
+ * Format a score so the printed number is safe to paste into the floor.
+ *
+ * `toFixed` ROUNDS, and that is a trap for this specific use. The first CI run
+ * of this job failed its own baseline: 131/257 is 50.97%, which printed as
+ * "51.0%", the floor was set from that printed value, and `score < threshold`
+ * was then true against the very suite the floor was measured on. The
+ * instrument rounded and its own output was read back as ground truth.
+ *
+ * Truncating toward zero makes the printed value a lower bound on the real one,
+ * so a floor copied from this output can never exceed the score that produced
+ * it. Two decimals, because one does not separate 50.97 from 51.
+ */
+export function fmtScore(score){
+  return (Math.floor(score * 100) / 100).toFixed(2);
+}
+
 export function maskNonCode(src) {
   const out = src.split('');
   let i = 0;
@@ -189,7 +206,7 @@ async function main() {
   const survivors = results.filter(r => !r.killed);
   const score = results.length ? (killed / results.length) * 100 : 100;
 
-  console.log(`\n\n${killed}/${results.length} mutants killed. Mutation score ${score.toFixed(1)}%.`);
+  console.log(`\n\n${killed}/${results.length} mutants killed. Mutation score ${fmtScore(score)}%.`);
   if (survivors.length) {
     console.log(`\n${survivors.length} SURVIVORS (behaviour no test asserts on):`);
     for (const s of survivors) console.log(`  ${s.file}:${s.line}  ${s.label}\n      ${s.context}`);
@@ -201,7 +218,7 @@ async function main() {
   }
 
   if (threshold !== null && score < threshold) {
-    console.error(`\nMutation score ${score.toFixed(1)}% is below the floor of ${threshold}%.`);
+    console.error(`\nMutation score ${fmtScore(score)}% is below the floor of ${threshold}%.`);
     console.error('Either add an assertion that kills a survivor above, or move the floor deliberately.');
     process.exit(1);
   }
@@ -212,7 +229,7 @@ function renderReport({ results, killed, survivors, score, targets }) {
   for (const s of survivors) (byFile[s.file] ||= []).push(s);
   return [
     '# Mutation report', '',
-    `**${killed}/${results.length} mutants killed. Score ${score.toFixed(1)}%.**`, '',
+    `**${killed}/${results.length} mutants killed. Score ${fmtScore(score)}%.**`, '',
     'A *survivor* is a deliberate break in the source that the test suite did not',
     'notice. It marks behaviour nothing asserts on. The score is a summary; the',
     'survivor list is the finding.', '',
