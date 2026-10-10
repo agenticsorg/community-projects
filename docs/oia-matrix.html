@@ -1,0 +1,298 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OIA Application Matrix</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fefbf6;--card:#ffffff;--card2:#fbf6ee;--line:#e3e1de;--tx:#1f1f1f;--mut:#736e64;--o:#e25c3d;--o2:#ffe8e0;--brand-dark:#c24a2f;--on-fill:#0b0d11;--radius:16px}
+/* Dark theme: override neutral chrome only. Brand fills (--o/--o2/--brand-dark) stay identical across themes; text on those fills uses --on-fill dark ink in both. */
+:root[data-theme="dark"]{--bg:#17130e;--card:#221c15;--card2:#2b241b;--line:#3a3128;--tx:#f1ece3;--mut:#a99e8d}
+
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.55 "IBM Plex Mono",ui-monospace,Menlo,monospace;padding:26px 22px 70px;max-width:1180px;margin:auto}
+h1,h2{font-family:"Barlow Condensed","Arial Narrow",sans-serif;text-transform:uppercase;font-weight:700;letter-spacing:.01em}h1{font-size:34px;margin:0 0 4px;padding-bottom:14px;border-bottom:3px solid var(--o)}h2{font-size:20px;margin:26px 0 10px}
+.sub{color:var(--mut);margin-bottom:6px;max-width:900px}
+.key{display:flex;gap:8px 18px;flex-wrap:wrap;margin:12px 0;font-size:12.5px;color:var(--mut)}
+.key b{color:var(--tx)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 16px;font-size:13px;color:var(--mut);align-items:center}
+.sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;min-width:820px;width:100%}
+th,td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--line)}
+th{font-size:13px;color:var(--tx);font-weight:750;position:sticky;top:0;background:var(--card)}
+th.state{color:var(--o)}
+td.app{text-align:left;font-weight:650;white-space:normal;max-width:340px;position:sticky;left:0;background:var(--card);border-right:1px solid var(--line);cursor:pointer}
+td.app:hover{background:var(--card2)}td.app small{color:var(--mut);font-weight:400;font-size:11px;white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+tr.sel td.app{box-shadow:inset 3px 0 0 var(--o)}
+.cell{width:32px;height:32px;border-radius:6px;margin:auto;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer}
+.c2{background:var(--o);color:#fff}
+tr.grp td{text-align:left;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);background:var(--card2);padding:7px 10px}
+tr.infra td.app{opacity:.82}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:6px;vertical-align:1px;letter-spacing:.02em}
+.badge.code{background:rgba(55,214,122,.18);color:#37d67a}
+.badge.desc{background:var(--card2);color:var(--mut)}
+.badge.warn{background:rgba(229,72,77,.16);color:#e5484d}
+.badge.auto{background:rgba(62,155,255,.16);color:#3e9bff}.c1{background:var(--o2);color:var(--on-fill)}.c0{background:transparent;cursor:default}
+td.spans{text-align:left;font-size:12px;white-space:nowrap}
+.pill{display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1px 8px;margin:1px 2px;font-size:11px}
+.pill.sec{border-color:#e5484d;color:#e5484d}.pill.prov{border-color:var(--o);color:var(--o)}.pill.sov{border-color:#3e9bff;color:#3e9bff}.pill.aud{border-color:#37d67a;color:#37d67a}.pill.ene{border-color:#ffcf5c;color:#b98900}.pill.idn{border-color:#a06bd6;color:#a06bd6}
+.cell:focus-visible{outline:2px solid var(--brand-dark);outline-offset:1px}td.app:focus-visible{outline:2px solid var(--brand-dark);outline-offset:-2px}
+#drill{margin-top:16px;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:0}
+#drill .empty{padding:18px;color:var(--mut);font-size:14px}
+#drill .hd{padding:15px 18px;border-bottom:1px solid var(--line)}
+#drill .hd b{font-size:17px}#drill .hd small{color:var(--mut)}
+#drill .bd{padding:15px 18px;display:grid;gap:12px}
+tr.detail td{background:var(--card2);border-left:3px solid var(--o);padding:14px 16px 16px}
+tr.detail .bd{display:grid;gap:10px}
+.layline{display:flex;gap:10px;align-items:baseline;font-size:14px}
+.layline .tag{flex:0 0 84px;font-weight:700;font-size:12px}
+.tag.cog{color:var(--o)}.tag.pres{color:var(--mut)}
+.mrow{color:var(--mut);font-size:13.5px}.mrow b{color:var(--tx)}
+details{border:1px solid var(--line);border-radius:12px;background:var(--card);margin-top:14px;padding:0}
+summary{padding:14px 18px;font-weight:700;cursor:pointer;font-size:15px}
+details[open] summary{border-bottom:1px solid var(--line)}
+.dc{padding:6px 18px 18px}.dc h3{font-size:14px;margin:16px 0 6px;color:var(--o)}
+.dc p,.dc li{color:var(--mut);font-size:13.5px}.dc b{color:var(--tx)}
+.dc table{min-width:0;font-size:13px;margin:8px 0}.dc td,.dc th{text-align:left;padding:6px 10px;border:1px solid var(--line)}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}.acts button{background:var(--o);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:13.5px;font-weight:650;cursor:pointer}.acts button.ghost{background:var(--card2);color:var(--tx);border:1px solid var(--line)}#pt{width:100%;min-height:230px;margin-top:10px;background:var(--card2);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:12px;font:12.5px/1.5 ui-monospace,Menlo,monospace;resize:vertical}#promptbox button{margin-top:8px;background:var(--card2);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px}.warn{border-left:3px solid var(--o);background:var(--card2);padding:10px 14px;border-radius:8px;color:var(--mut);font-size:13.5px}
+
+.grp.pend td{color:var(--on-fill);background:var(--o2);border-top:1px solid var(--o)}
+tr.pending td.app{box-shadow:inset 3px 0 0 #3e9bff}
+.submeta{display:block;color:#3e9bff;font-weight:400;font-size:10px;margin-top:1px;white-space:normal;overflow-wrap:anywhere}
+.submit-btn{display:inline-block;background:var(--o);color:#fff;text-decoration:none;border-radius:8px;padding:8px 14px;font-weight:650;font-size:13.5px}
+.submit-btn:hover{background:var(--brand-dark)}
+.embed{width:100%;min-height:44px;margin-top:4px;background:var(--card2);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:8px;font:11.5px/1.4 ui-monospace,Menlo,monospace;resize:vertical}
+.ghav{width:18px;height:18px;border-radius:4px;vertical-align:-3px;margin-right:6px;background:var(--line)}
+.theme-tog{position:fixed;top:14px;right:16px;z-index:50;display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);color:var(--mut);border-radius:20px;padding:5px 11px;font:600 12px/1 "IBM Plex Mono",ui-monospace,Menlo,monospace;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.theme-tog:hover{border-color:var(--o);color:var(--tx)}
+.theme-tog:focus-visible{outline:2px solid var(--o);outline-offset:2px}
+</style>
+<script>
+(function(){
+  var KEY='oia-theme', root=document.documentElement;
+  function q(){return new URLSearchParams(location.search).get('theme');}
+  function stored(){try{return localStorage.getItem(KEY);}catch(e){return null;}}
+  var mq=window.matchMedia('(prefers-color-scheme: dark)');
+  function syncBtn(){
+    var b=document.getElementById('themeTog'); if(!b)return;
+    var dark=root.dataset.theme==='dark';
+    var ic=document.getElementById('themeTogIcon'), lb=document.getElementById('themeTogLabel');
+    if(ic)ic.textContent=dark?'☾':'☀';
+    if(lb)lb.textContent=dark?'Dark':'Light';
+    b.setAttribute('aria-pressed', String(dark));
+  }
+  function apply(t){root.dataset.theme=t;syncBtn();}
+  function resolve(){
+    var qq=q(); if(qq==='light'||qq==='dark')return qq;
+    var s=stored(); if(s==='light'||s==='dark')return s;
+    return mq.matches?'dark':'light';
+  }
+  window.__toggleTheme=function(){
+    var next=root.dataset.theme==='dark'?'light':'dark';
+    try{localStorage.setItem(KEY,next);}catch(e){}
+    apply(next);
+  };
+  mq.addEventListener('change',function(){
+    var qq=q(); if(qq==='light'||qq==='dark')return;
+    var s=stored(); if(s==='light'||s==='dark')return;
+    apply(mq.matches?'dark':'light');
+  });
+  apply(resolve());
+  document.addEventListener('DOMContentLoaded',syncBtn);
+})();
+</script>
+</head><body>
+<button class="theme-tog" id="themeTog" type="button" aria-label="Toggle light or dark theme" aria-pressed="false" onclick="__toggleTheme()"><span id="themeTogIcon" aria-hidden="true">◐</span> <span id="themeTogLabel">Theme</span></button>
+<div style="margin-bottom:12px"><a href="./" style="color:var(--mut);text-decoration:none;font-size:13px">← Agentics Open Source Committee · Dashboard</a></div>
+<div style="background:var(--o2);border:1px solid var(--o);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;color:var(--on-fill);font-size:13px"><b>v0 draft — a strawman for committee review, not a measurement.</b> Most placements are classified from repo descriptions (see the per-row evidence tier); some are unverified and may be wrong. This is a working tool to structure the OIA intake discussion, not an official Foundation ranking of any project. <a href="https://github.com/agenticsorg/community-projects/issues/36" target="_blank" rel="noopener noreferrer" style="color:var(--on-fill);font-weight:700;text-decoration:underline">Share feedback &rarr;</a></div>
+<h1>OIA Application Matrix <span style="font-size:14px;color:var(--mut);font-weight:400">· v0 · 2026-07-15</span></h1>
+<div class="sub">Where each application sits in the Open Intelligence Architecture stack. Click any application, or any filled cell, to drill down into the rationale, generate a gap-closing improvement prompt, and retest.</div>
+<div class="key" id="key"></div>
+<div class="legend">
+  <span><span class="sw" style="background:var(--o)"></span>● centre of gravity</span>
+  <span><span class="sw" style="background:var(--o2)"></span>· meaningful presence</span>
+  <span><b class="state" style="color:var(--o)">L3 · L8</b> = state-holding layers</span>
+  <span><span class="badge code">code ✓</span> verified in code &nbsp; <span class="badge desc">desc</span> description only &nbsp; <span class="badge warn">desc ⚠</span> code differs</span>
+</div>
+<div style="margin:2px 0 16px"><a class="submit-btn" href="https://github.com/agenticsorg/community-projects/issues/new?template=project-submission.yml" target="_blank" rel="noopener noreferrer">+ Submit a repo for consideration</a> <span style="color:var(--mut);font-size:12px">Sign in to GitHub to submit. A committee workflow auto-classifies it and adds it to the matrix under <b>pending review</b>.</span></div>
+<div class="wrap"><table id="t"><thead><tr id="head"></tr></thead><tbody id="body"></tbody></table></div>
+
+<p style="color:var(--mut);font-size:13px;margin:10px 2px">Click any row to expand its rationale, gap prompt, and rescan inline. Click again to collapse.</p>
+
+<details><summary>Methodology &amp; limitations — how these placements were made</summary>
+<div class="dc">
+<h3>Two lenses</h3>
+<p><b>OIA (structural)</b> answers <i>where</i> an app sits: 10 layers (L0 physical compute → L9 human interface) and 6 cross-layer spans (security, sovereignty, auditability, energy, identity, provenance). <b>metaharness (operational)</b> answers <i>how well</i> it runs: its <code>score &lt;repo&gt;</code> command reads a repo without executing it and rates harness-fit, build-likelihood, tool-safety, and cost-per-run.</p>
+<h3>What the cell values mean</h3>
+<table><tr><th>Value</th><th>Meaning</th></tr>
+<tr><td>● (2)</td><td><b>Centre of gravity</b> — a primary layer the app is fundamentally about.</td></tr>
+<tr><td>· (1)</td><td><b>Meaningful presence</b> — the app touches this layer but it is not its core.</td></tr>
+<tr><td>blank (0)</td><td>Not addressed.</td></tr></table>
+<h3>Scoring vocabulary carried from OIA</h3>
+<p>OIA's own Reader rates each layer <b>COHERENT / GAP / NOT YET / N/A</b> and flags <b>vertical extension</b> when one thing spans many layers. This matrix uses the footprint (● / ·) as a first pass; per-layer COHERENT/GAP maturity is a later refinement once a rubric exists.</p>
+<h3>The 12 evaluation dimensions</h3>
+<p><b>Structural:</b> layer footprint · centre of gravity · vertical extension · novel-layer (L8) engagement · span coherence · layer maturity. <b>Operational:</b> harness-fit · build-likelihood · tool-safety · cost-per-run. <b>Governance:</b> openness / vendor-neutrality · qualification gate (issue tracker + docs + infographic/PRD/ADRs).</p>
+<h3>Evidence tier — description vs code</h3>
+<p>Every placement carries an <b>evidence indicator</b>. <span class="badge desc">desc</span> means it was classified from the repo's description/README only (the default, and most of this v0). <span class="badge code">code ✓</span> means the placement was checked against the actual source. <span class="badge warn">desc ⚠</span> means a code check <b>contradicted</b> the description.</p>
+<p><b>Worked example of why this matters:</b> <code>lean-agentic</code>'s description ("Lean4 formal verification") drove an L8 "strongest auditability" placement. A code check found a ~1.2MB Rust repo with a single <code>src/</code> dir — no Lean4 proof system. The description oversold the layer. Without the indicator, that overstatement would sit in the matrix as fact. This is the same conformance-vs-performance discipline the committee applies elsewhere: a claim is not verified until checked at its source.</p>
+<h3>Limitations — read before citing</h3>
+<div class="warn">
+<b>This is v0, classified from repo descriptions and READMEs, not code audits.</b> Author = classifier, so it is a <b>strawman for committee red-lining, not a measurement</b>. Layer assignments are judgment calls at the margins (is metaharness's router L5 or L7). No composite score is offered on purpose: weighting the 12 dimensions is a committee decision, and one number would launder the judgment the committee exists to make. "Vertical extension" is descriptive, not a penalty. <b>Cheapest next step:</b> a second member independently re-tags, and a 1-page rubric with anchor examples per layer makes the tagging reproducible.
+</div>
+<h3>Sources</h3>
+<p>agenticsorg/OIA-Model <code>docs/OIA-Model-v0.1-Digest.md</code> · ruvnet/metaharness README + <code>score</code> · repo list generated 2026-07-15.</p>
+</div></details>
+
+<!-- Signal maps + corpus construction are imported from the SAME module the
+     server-side classifier uses (scripts/classify-oia.mjs), so the Rescan
+     button and the intake workflow can never drift apart. -->
+<script type="module">
+ import * as OIA from "./oia-signals.mjs";
+ window.OIA_SIGNALS = OIA;
+</script>
+<script>
+const layers=[["L0","Physical Compute"],["L1","Silicon Abstraction"],["L2","Sovereign Infrastructure"],["L3","Agent Data Substrate"],["L4","Model Training & Adaptation"],["L5","Inference & Retrieval"],["L6","Context & Knowledge"],["L7","Orchestration & Workflow"],["L8","Continuity Fabric"],["L9","Human & Browser Interface"]];
+const STATE={3:1,8:1};
+// Matrix data is loaded from data/oia-matrix.json at runtime (curated = committee-reviewed,
+// pending = auto-classified from a submission awaiting promotion). The internal apps[]/EVID/GAPS
+// shapes are rebuilt from that JSON so all render/drill-down/rescan logic below is unchanged.
+// apps tuple: [name, desc, [L0..L9], [[span,cls]...], whyByLayerIndex{}, opsNote, kind ("app"|"infra")]
+let apps=[], EVID={}, GAPS={}, SUBMETA={};
+function slug(n){return 'oia-'+String(n).replace(/[^a-z0-9]+/gi,'-').toLowerCase();}
+function evOf(name){return EVID[name]||{t:"desc",n:"Classified from the repo description/README only. Not yet verified against code."};}
+const EVLBL={code:"code ✓",warn:"desc ⚠",desc:"desc",auto:"auto ⟳"};
+function ingest(list,status){
+ for(const e of (list||[])){
+  apps.push([e.name,e.desc,e.layers,(e.spans||[]).map(s=>[s.label,s.badge]),e.notes||{},e.narrative,e.category]);
+  if(e.evidence) EVID[e.name]=e.evidence;
+  if(e.gaps) GAPS[e.name]=e.gaps;
+  SUBMETA[e.name]={status:status,submitted:e.submitted,issue:e.issue};
+ }
+}
+function appByName(n){return apps.find(a=>a[0]===n);}
+function genPrompt(name){
+ const a=appByName(name), L=layers, e=evOf(name);
+ const cog=a[2].map((v,i)=>v==2?L[i][0]+" "+L[i][1]:null).filter(Boolean);
+ const pres=a[2].map((v,i)=>v==1?L[i][0]:null).filter(Boolean);
+ const abs=a[2].map((v,i)=>v==0?L[i][0]:null).filter(Boolean);
+ const spans=a[3].map(s=>s[0]).join(", ");
+ const g=GAPS[name]||["Meet the qualification gate and verify placements in code."];
+ const txt="# Improve "+name+" for the OIA assessment\n\n"+
+  "## Current OIA position (v0, evidence tier: "+EVLBL[e.t]+")\n"+
+  "- Centre of gravity: "+(cog.join("; ")||"none")+"\n- Present: "+(pres.join(", ")||"none")+"\n- Absent: "+(abs.join(", ")||"none")+"\n"+
+  "- Strongest spans: "+spans+"\n- Evidence note: "+e.n+"\n\n"+
+  "## Highest-leverage gaps to close (in order)\n"+g.map((x,i)=>(i+1)+". "+x).join("\n")+"\n\n"+
+  "## For each gap\n- Make the change in code, not just docs.\n- Add a test or artefact that PROVES it, so the placement becomes code-verified.\n- Update the README to name the OIA layer/span it now addresses.\n- Meet the qualification gate: issue tracker, documentation, infographic + PRD + ADRs.\n\n"+
+  "## Definition of done\n"+name+" moves toward code-verified on the targeted layers and gains a new centre-of-gravity layer or a new span in the next OIA assessment. Then Retest.\n\n"+
+  "## Specifications & references (ground the work in these)\n"+
+  "- OIA Model interactive reader (open Section 3 Nine Layers for your target layer, Section 5 Spans for the spans): https://oia.agentics.org\n"+
+  "- OIA Model Digest (verbatim layer + span definitions): https://github.com/agenticsorg/OIA-Model/blob/main/docs/OIA-Model-v0.1-Digest.md\n"+
+  "- OIA Decision Log (design decisions incl. vertical extension): https://github.com/agenticsorg/OIA-Model/blob/main/docs/OIA-Model-v0.1-Decision-Log-Digest.md\n"+
+  "- metaharness (the harness pattern + score command): https://github.com/ruvnet/metaharness\n"+
+  "- Committee charter: https://github.com/agenticsorg/community-projects/blob/main/docs/operating-guidelines/committee-charter.md\n"+
+  "- Intake constitution (machine spec): https://github.com/agenticsorg/community-projects/blob/main/spec/constitution.yaml\n"+
+  "- RFC-001 governance agent: https://github.com/agenticsorg/community-projects/blob/main/RFC-001-governance-agent.md";
+ const box=document.getElementById("promptbox");
+ box.innerHTML='<textarea id="pt" readonly></textarea><div><button onclick="cp()">Copy prompt</button> <span id="cpmsg" class="mrow"></span></div>';
+ document.getElementById("pt").value=txt;
+ box.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function cp(){const t=document.getElementById("pt");t.select();navigator.clipboard.writeText(t.value).then(()=>document.getElementById("cpmsg").textContent="copied to clipboard",()=>document.getElementById("cpmsg").textContent="select-all + copy manually");}
+async function retest(name){
+ const s=document.getElementById("rtstatus"); s.textContent="Scanning repo file tree (client-side)...";
+ const OIA=window.OIA_SIGNALS;
+ if(!OIA){s.textContent="Signal module (oia-signals.mjs) did not load; Rescan unavailable.";return;}
+ try{
+  const meta=await (await fetch("https://api.github.com/repos/"+name)).json();
+  if(meta.message){s.textContent="GitHub API: "+meta.message+" (unauthenticated limit 60/hr).";return;}
+  const br=meta.default_branch||"main";
+  const tj=await (await fetch("https://api.github.com/repos/"+name+"/git/trees/"+br+"?recursive=1")).json();
+  if(tj.message||!Array.isArray(tj.tree)){s.textContent="GitHub tree fetch failed: "+(tj.message||"no tree returned")+" (unauthenticated limit 60/hr).";return;}
+  const paths=tj.tree.map(t=>t.path.toLowerCase());
+  let readme=""; try{const rd=await (await fetch("https://api.github.com/repos/"+name+"/readme")).json(); if(rd.content) readme=atob(rd.content.replace(/\n/g,"")).toLowerCase();}catch(_){}
+  const corpus=OIA.buildCorpus({paths,readme,topics:meta.topics||[],language:meta.language||""});
+  const scored=OIA.classifySignals(corpus);
+  const vals=scored.layers, spans=scored.spans.map(x=>x.label);
+  const gate={issues:!!meta.has_issues,docs:paths.some(x=>/^docs?\//.test(x))||readme.length>800,ADRs:paths.some(x=>/adrs?\/|adr-\d/.test(x)),PRD:paths.some(x=>/prd/.test(x)),infographic:paths.some(x=>/infographic|\.svg$/.test(x))};
+  const a=appByName(name), base=a[2];
+  const diff=vals.map((v,i)=>v!==base[i]?layers[i][0]+(v>base[i]?" ↑":" ↓"):null).filter(Boolean);
+  const hdr=layers.map(l=>`<span style="display:inline-block;width:28px;text-align:center;font-size:10px;color:var(--mut)">${l[0]}</span>`).join("");
+  const mini=vals.map((v,i)=>`<span title="${layers[i][1]}" style="display:inline-block;width:28px;text-align:center;color:${v==2?'var(--o)':v==1?'var(--tx)':'var(--line)'}">${v==2?'●':v==1?'·':'–'}</span>`).join("");
+  const gk=Object.entries(gate).map(([k,v])=>`${k} ${v?'✓':'✗'}`).join(" · ");
+  // #64: report scaffolding exclusion and scan-cap truncation separately.
+  const scanScope=corpus.truncated?`${corpus.kept} of ${corpus.kept+corpus.truncated}`:`${corpus.kept}`;
+  const scanParts=[];
+  if(corpus.dropped) scanParts.push(`${corpus.dropped} scaffolding path${corpus.dropped===1?'':'s'} excluded`);
+  if(corpus.truncated) scanParts.push(`${corpus.truncated} beyond the ${OIA.SCAN_CAP}-file scan cap, not read`);
+  if(tj.truncated) scanParts.push('tree truncated by GitHub');
+  const scanNote=scanParts.length?` (${scanParts.join('; ')})`:'';
+  s.innerHTML=`<b>Auto-scan</b> of ${scanScope} project files${scanNote} · pushed ${(meta.pushed_at||'').slice(0,10)}<div style="margin:6px 0;font-family:ui-monospace,Menlo,monospace">${hdr}<br>${mini}</div>Δ vs v0: <b>${diff.length?diff.join(", "):"no change"}</b><br>Spans detected: ${spans.join(", ")||"none"}<br>Qualification gate: ${gk}<br><span style="color:var(--mut)">Evidence: <span class="badge auto">auto ⟳</span> heuristic file-tree scan — structural signals (checks real files, not just names), not comprehension. Promote to <b>code ✓</b> with a reader-agent audit.</span>`;
+  const bdg=document.querySelector('#r'+apps.indexOf(a)+' .badge'); if(bdg){bdg.className='badge auto';bdg.textContent='auto ⟳';}
+ }catch(e){s.textContent="Scan failed (offline, CORS, or rate limit): "+e;}
+}
+function render(){
+ document.getElementById('key').innerHTML=layers.map(l=>`<span><b>${l[0]}</b> ${l[1]}${STATE[+l[0].slice(1)]?' <span style="color:var(--o)">(state)</span>':''}</span>`).join('');
+ document.getElementById('head').innerHTML='<th class="app" style="text-align:left">Application</th>'+layers.map(l=>`<th class="${STATE[+l[0].slice(1)]?'state':''}" title="${l[1]}">${l[0]}</th>`).join('')+'<th style="text-align:left">Spans</th>';
+ document.getElementById('body').innerHTML=apps.map((a,i)=>{
+  const cells=a[2].map((v,li)=>`<td>${v?`<div class="cell c${v}" role="button" tabindex="0" aria-label="${a[0]} · ${layers[li][0]} ${layers[li][1]} (${v==2?'centre of gravity':'meaningful presence'})" onclick="pick(${i},${li})">${v==2?'●':'·'}</div>`:'<div class="cell c0"></div>'}</td>`).join('');
+  const spans=a[3].map(s=>s[1]===''?`<span class="pill">${s[0]}</span>`:`<span class="pill ${s[1]}">${s[0]}</span>`).join('');
+  const st=(SUBMETA[a[0]]||{}).status, prev=i>0?apps[i-1]:null, pst=prev?(SUBMETA[prev[0]]||{}).status:null;
+  let div='';
+  if(st==='pending' && pst!=='pending'){
+   div=`<tr class="grp pend"><td colspan="12">Pending review — auto-classified from a submission (desc/auto tier), awaiting committee promotion</td></tr>`;
+  }else if(st!=='pending' && i>0 && a[6]==='infra' && prev[6]==='app' && pst!=='pending'){
+   div=`<tr class="grp"><td colspan="12">Infrastructure / content / meta — not intelligence applications (the OIA lens collapses them to L9 or flags out-of-scope)</td></tr>`;
+  }
+  const sm=SUBMETA[a[0]]||{};
+  const submeta=(st==='pending')?`<span class="submeta">submitted${sm.submitted?' '+sm.submitted:''}${sm.issue?` · <a href="https://github.com/agenticsorg/community-projects/issues/${sm.issue}" target="_blank" rel="noopener noreferrer">#${sm.issue}</a>`:''}</span>`:'';
+  return div+`<tr id="r${i}" class="${a[6]}${st==='pending'?' pending':''}"><td class="app" id="${slug(a[0])}" role="button" tabindex="0" aria-label="${a[0]} — expand rationale" onclick="pick(${i})"><img class="ghav" src="https://github.com/${a[0].split('/')[0]}.png?size=40" alt="" loading="lazy" onerror="this.remove()">${a[0]}<span class="badge ${evOf(a[0]).t}">${EVLBL[evOf(a[0]).t]}</span><small>${a[1]}</small>${submeta}</td>${cells}<td class="spans">${spans}</td></tr>`;
+ }).join('');
+}
+document.getElementById('body').addEventListener('keydown',e=>{const t=e.target;if((e.key==='Enter'||e.key===' ')&&t&&((t.classList.contains('cell')&&!t.classList.contains('c0'))||t.classList.contains('app'))){e.preventDefault();t.click();}});
+function pick(i,focus){
+ const open=document.querySelector('tr.detail');
+ const same=open&&open.getAttribute('data-for')===String(i);
+ if(open) open.remove();
+ document.querySelectorAll('tr.sel').forEach(r=>r.classList.remove('sel'));
+ if(same) return;
+ const row=document.getElementById('r'+i); row.classList.add('sel');
+ const a=apps[i], why=a[4]||{};
+ const cog=a[2].map((v,li)=>v?[li,v]:null).filter(Boolean).sort((x,y)=>y[1]-x[1]);
+ const lines=cog.map(([li,v])=>{const L=layers[li],r=why[li]||'';const hl=(focus===li)?'style="background:var(--card);border:1px solid var(--o);border-radius:6px;padding:2px 6px;margin:-2px -6px"':'';return `<div class="layline" ${hl}><span class="tag ${v==2?'cog':'pres'}">${L[0]} ${v==2?'●':'·'}</span><span><b>${L[1]}</b>${r?' — '+r:''}</span></div>`;}).join('');
+ const spans=a[3].map(s=>s[1]===''?`<span class="pill">${s[0]}</span>`:`<span class="pill ${s[1]}">${s[0]}</span>`).join('');
+ const bslug=slug(a[0]);
+ const badgeUrl=`badges/${a[0]}.svg`;
+ const rowUrl=`oia-matrix.html#${bslug}`;
+ const embed=`[![OIA](https://agenticsorg.github.io/community-projects/${badgeUrl})](https://agenticsorg.github.io/community-projects/${rowUrl})`;
+ const tr=document.createElement('tr'); tr.className='detail'; tr.setAttribute('data-for',i);
+ const td=document.createElement('td'); td.colSpan=12;
+ td.innerHTML=`<div class="bd">`+
+   `<div class="mrow"><img class="ghav" src="https://github.com/${a[0].split('/')[0]}.png?size=40" alt="" loading="lazy" onerror="this.remove()"><b>${a[0]}</b> &mdash; ${a[1]}</div>`+
+   `<div class="mrow"><b>Layer footprint &amp; rationale</b></div>${lines}`+
+   `<div class="mrow"><b>Strongest spans:</b> ${spans}</div>`+
+   `<div class="mrow"><b>Operational read (metaharness lens):</b> ${a[5]}</div>`+
+   `<div class="mrow"><b>Evidence tier:</b> <span class="badge ${evOf(a[0]).t}">${EVLBL[evOf(a[0]).t]}</span> ${evOf(a[0]).n}</div>`+
+   `<div class="mrow"><b>README badge</b> — links back to this row: <img src="${badgeUrl}" alt="OIA badge" style="vertical-align:middle;height:20px" onerror="this.style.display='none'"></div>`+
+   `<div><textarea class="embed" readonly onclick="this.select()">${embed}</textarea></div>`+
+   `<div class="acts"><button onclick="genPrompt('${a[0]}')">Generate improvement prompt →</button> <button class="ghost" onclick="retest('${a[0]}')">Rescan repo (client-side) ↻</button></div>`+
+   `<div id="rtstatus" class="mrow"></div><div id="promptbox"></div></div>`;
+ tr.appendChild(td); row.after(tr);
+}
+function handleHash(){
+ const h=decodeURIComponent(location.hash.replace(/^#/,'')); if(!h) return;
+ const idx=apps.findIndex(a=>slug(a[0])===h||a[0]===h);
+ if(idx>=0){const el=document.getElementById(slug(apps[idx][0])); if(el) el.scrollIntoView({behavior:'smooth',block:'center'}); pick(idx);}
+}
+window.addEventListener('hashchange',handleHash);
+async function init(){
+ try{
+  const r=await fetch('data/oia-matrix.json',{cache:'no-store'});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const d=await r.json();
+  apps=[];EVID={};GAPS={};SUBMETA={};
+  ingest(d.curated,'curated'); ingest(d.pending,'pending');
+  render(); handleHash();
+ }catch(e){
+  document.getElementById('body').innerHTML=`<tr><td colspan="12" style="text-align:left;padding:14px">Failed to load matrix data (${e}). Expected <code>data/oia-matrix.json</code>.</td></tr>`;
+ }
+}
+init();
+</script></body></html>
