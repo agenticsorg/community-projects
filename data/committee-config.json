@@ -32,5 +32,12 @@
       "name": "Robert Ranson",
       "role": "member"
     }
+  ],
+  "contributors": [
+    {
+      "login": "CraftsMan-Labs",
+      "name": "Rishub C R (Craftsman)",
+      "role": "contributor"
+    }
   ]
 }
